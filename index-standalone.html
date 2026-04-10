@@ -1,0 +1,2006 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Uppa — Restyling Prototipo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    a { text-decoration: none; color: inherit; }
+    button { border: none; background: none; cursor: pointer; font: inherit; }
+
+    :root {
+      --orange:       #FE6600;
+      --orange-lt:    #FE9272;
+      --orange-pale:  #FEE8E4;
+      --warm-50:      #FEFDFB;
+      --warm-300:     #F8F6F2;
+      --warm-400:     #F5F3EF;
+      --warm-100:     #FDFBF7;
+      --dark-50:      #F2F0EC;
+      --dark-100:     #E3E2DE;
+      --dark-200:     #C7C6C3;
+      --dark-400:     #91908E;
+      --dark-500:     #777674;
+      --dark-600:     #5E5E5C;
+      --dark-700:     #474645;
+      --dark-800:     #30302F;
+      --dark-900:     #1B1B1B;
+
+      --nav-main-h:  88px;   /* white bar */
+      --nav-rub-h:   56px;   /* orange bar default */
+      --nav-rub-scrolled-h: 60px; /* orange bar scrolled (slightly taller) */
+      --header-total: calc(var(--nav-main-h) + var(--nav-rub-h));
+
+      --ease-nav: cubic-bezier(0.4, 0, 0.2, 1);
+      --dur: 0.36s;
+    }
+
+    html { scroll-behavior: smooth; overflow-x: hidden; }
+    body {
+      background: var(--warm-400);
+      color: var(--dark-800);
+      font-family: 'Poppins', sans-serif;
+      overflow-x: hidden;
+      /* padding-top impostato dinamicamente dal JS */
+      transition: padding-top var(--dur) var(--ease-nav);
+    }
+
+    /* ══════════════════════════════════════
+       HEADER — entrambe le barre sono fixed
+       e animate indipendentemente con transform
+    ══════════════════════════════════════ */
+    .site-header { /* solo wrapper semantico */ }
+
+    /* ── Nav principale (bianca) ── */
+    .nav-main {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 901;
+      height: var(--nav-main-h);
+      background: var(--warm-300);
+      border-bottom: 1px solid var(--dark-50);
+      display: flex;
+      align-items: center;
+      padding: 0 80px;
+      transition: transform var(--dur) var(--ease-nav);
+      will-change: transform;
+    }
+
+    .nav-main__inner {
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+
+    /* Gruppo centrale: nav-links + search, centrato rispetto alla nav */
+    .nav-main__center {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+    }
+
+    /* Logo */
+    .logo {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+    }
+    .logo img {
+      height: 40px;
+      width: auto;
+      display: block;
+    }
+
+    /* Nav links */
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+    .nav-links a,
+    .nav-links button {
+      font-family: 'Poppins', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--dark-700);
+      letter-spacing: -0.3px;
+      line-height: 1.4;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      transition: color 0.14s;
+    }
+    .nav-links a:hover,
+    .nav-links button:hover { color: var(--orange); }
+
+    /* chevron down icon */
+    .chevron {
+      width: 18px; height: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .chevron svg {
+      width: 12px; height: 12px;
+      stroke: currentColor;
+      transition: transform 0.22s var(--ease-nav);
+    }
+
+    /* ── Dropdown "Fasce d'età" ── */
+    .nav-dropdown {
+      position: relative;
+    }
+    .nav-dropdown__trigger {
+      /* eredita tutti gli stili da .nav-links button */
+    }
+    .nav-dropdown.is-open .chevron svg {
+      transform: rotate(180deg);
+    }
+    .nav-dropdown__panel {
+      position: absolute;
+      top: calc(100% + 16px);
+      left: 50%;
+      transform: translateX(-50%) translateY(-6px);
+      background: var(--warm-50);
+      border: 1px solid var(--dark-100);
+      border-radius: 10px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06);
+      min-width: 164px;
+      display: flex;
+      flex-direction: column;
+      padding: 6px 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s var(--ease-nav), transform 0.18s var(--ease-nav);
+      z-index: 910;
+    }
+    .nav-dropdown.is-open .nav-dropdown__panel {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(-50%) translateY(0);
+    }
+    .nav-dropdown__panel a {
+      display: block;
+      padding: 10px 20px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--dark-700);
+      letter-spacing: -0.3px;
+      line-height: 1.4;
+      white-space: nowrap;
+      transition: color 0.14s, background 0.14s;
+    }
+    .nav-dropdown__panel a:hover {
+      color: var(--orange);
+      background: var(--warm-100);
+    }
+    /* separatore sottile tra voci */
+    .nav-dropdown__panel a + a {
+      border-top: 1px solid var(--dark-50);
+    }
+
+    /* Search */
+    .nav-search {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      height: 44px;
+      padding: 0 16px;
+      border-radius: 999px;
+      border: 1px solid var(--dark-200);
+      background: var(--warm-50);
+      width: 200px;
+      margin-left: 24px;
+      flex-shrink: 0;
+      cursor: text;
+      transition: border-color 0.14s;
+    }
+    .nav-search:hover { border-color: var(--orange); }
+    .nav-search span {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--dark-400);
+      letter-spacing: -0.3px;
+      white-space: nowrap;
+    }
+    .nav-search svg { width: 18px; height: 18px; stroke: var(--dark-400); flex-shrink: 0; }
+
+    /* CTA principale */
+    .nav-cta {
+      flex-shrink: 0;
+      margin-left: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 2px solid var(--orange);
+      background: var(--warm-50);
+      font-family: 'Poppins', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--orange);
+      letter-spacing: -0.3px;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: background 0.14s, color 0.14s;
+    }
+    .nav-cta:hover { background: var(--orange); color: white; }
+
+    /* Spacer spinge search + cta a destra */
+    .nav-main__spacer { flex: 1; }
+
+    /* ── Nav rubriche (arancione) ── */
+    .nav-rubriche {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 900;
+      background: var(--orange);
+      border-bottom: 1px solid rgba(28,26,23,0.10);
+      /* Proprietà richieste — stato default */
+      display: flex;
+      padding: 12px 5rem;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      /* Di default è sotto la nav-main */
+      transform: translateY(var(--nav-main-h));
+      transition: transform var(--dur) var(--ease-nav),
+                  padding var(--dur) var(--ease-nav),
+                  gap var(--dur) var(--ease-nav);
+      will-change: transform;
+    }
+
+    /* Label + pills in riga, centrati come unico blocco */
+    .nav-rubriche__inner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    /* Logo bianco — nascosto in default */
+    .rub-logo {
+      height: 28px;
+      width: auto;
+      flex-shrink: 0;
+      display: none;
+      filter: brightness(0) invert(1);
+    }
+
+    /* Separatore verticale — nascosto in default */
+    .rub-sep {
+      width: 1px;
+      height: 18px;
+      background: rgba(255,255,255,0.30);
+      flex-shrink: 0;
+      display: none;
+    }
+
+    /* Label RUBRICHE: */
+    .rub-label {
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.85);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      flex-shrink: 0;
+      font-feature-settings: 'ss02' 1;
+    }
+
+    /* Pills container */
+    .rub-pills {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      width: 100%;
+    }
+    .rub-pills::-webkit-scrollbar { display: none; }
+
+    .rub-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 36px;
+      padding: 0 12px;
+      border-radius: 100px;
+      border: 1px solid var(--orange-lt);
+      background: transparent;
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--warm-50);
+      white-space: nowrap;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.14s, border-color 0.14s;
+      -webkit-tap-highlight-color: transparent;
+      font-feature-settings: 'ss02' 1;
+    }
+    .rub-pill:hover { background: rgba(255,255,255,0.15); border-color: white; }
+    .rub-pill.is-active { background: white; color: var(--orange); border-color: white; }
+
+    /* CTA — nascosta in default */
+    .rub-cta {
+      flex-shrink: 0;
+      display: none;
+    }
+    .rub-cta a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 36px;
+      padding: 0 16px;
+      border-radius: 20px;
+      border: 2px solid white;
+      background: transparent;
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: white;
+      letter-spacing: -0.3px;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: background 0.14s, color 0.14s;
+    }
+    .rub-cta a:hover { background: white; color: var(--orange); }
+
+    /* ══════════════════════════════════════
+       STATO SCROLLED
+       nav-main: scivola su fuori schermo
+       nav-rubriche: va a top:0 (translateY → 0)
+    ══════════════════════════════════════ */
+    .is-scrolled .nav-main {
+      transform: translateY(-100%);
+      pointer-events: none;
+    }
+
+    .is-scrolled .nav-rubriche {
+      transform: translateY(0);
+      flex-direction: row;
+      align-items: center;
+      padding: 12px 80px;
+      gap: 0;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.15);
+    }
+
+    .is-scrolled .nav-rubriche__inner {
+      justify-content: flex-start;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      flex: 1;
+      scrollbar-width: none;
+    }
+    .is-scrolled .nav-rubriche__inner::-webkit-scrollbar { display: none; }
+
+    .is-scrolled .rub-logo {
+      display: block;
+      margin-right: 16px;
+    }
+
+    .is-scrolled .rub-sep {
+      display: block;
+      margin: 0 12px;
+    }
+
+    .is-scrolled .rub-label {
+      display: none;
+    }
+
+    .is-scrolled .rub-cta {
+      display: flex;
+      margin-left: 16px;
+    }
+
+    /* ══════════════════════════════════════
+       CONTENUTO PAGINA
+    ══════════════════════════════════════ */
+
+    /* ── Hero ── */
+    .hero {
+      background: #30302F;
+      display: flex;
+      justify-content: center;
+    }
+    .hero__container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      max-width: 1512px;
+      width: 100%;
+      height: 684px;
+    }
+
+    .hero__img {
+      background: linear-gradient(135deg, #1A3A5C 0%, #2D5016 50%, #3A6B20 100%);
+      position: relative;
+      overflow: hidden;
+      min-height: 420px;
+    }
+
+    .hero__img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .hero__body {
+      background: var(--warm-400);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 32px 88px;
+      text-align: center;
+      height: 100%;
+    }
+
+    .hero__dots-top {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .hero__dots-bottom {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+    }
+    .hero__dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--dark-200);
+      transition: background 0.25s, transform 0.25s, width 0.25s;
+      flex-shrink: 0;
+    }
+    .hero__dots-bottom .hero__dot { cursor: pointer; }
+    .hero__dots-bottom .hero__dot:hover { transform: scale(1.3); }
+    .hero__dot.is-active {
+      background: var(--orange);
+      width: 20px;
+      border-radius: 4px;
+    }
+
+    /* Carousel slides images */
+    .hero__slides {
+      position: relative;
+      overflow: hidden;
+      height: 100%;
+    }
+    .hero__slide {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.55s ease;
+    }
+    .hero__slide.is-active { opacity: 1; }
+    .hero__slide img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+
+    /* Content wrap — stacking */
+    .hero__content-wrap {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      display: flex;
+      align-items: center;
+    }
+
+    .hero__content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.45s ease, transform 0.45s ease;
+      pointer-events: none;
+    }
+    .hero__content.is-active {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .hero__meta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .hero__meta img { width: 18px; height: 18px; flex-shrink: 0; }
+    .hero__meta span {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--dark-600);
+    }
+
+    .hero__titles {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .hero__title {
+      font-family: 'Poppins', sans-serif;
+      font-size: 46px;
+      font-weight: 600;
+      color: var(--dark-800);
+      line-height: 1.1;
+      letter-spacing: -1.38px;
+      font-feature-settings: 'ss02' 1;
+    }
+
+    .hero__body-text {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .hero__excerpt {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.5rem;
+      font-style: normal;
+      font-weight: 400;
+      color: var(--dark-500);
+      line-height: 140%;
+      letter-spacing: -0.03rem;
+      text-align: center;
+    }
+
+    .hero__author {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      line-height: 1.4;
+      letter-spacing: -0.3px;
+    }
+    .hero__author-name { color: var(--orange); }
+    .hero__author-role { color: var(--dark-600); }
+
+    .hero__cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 48px;
+      padding: 0 32px;
+      border-radius: 100px;
+      background: var(--dark-800);
+      border: 1px solid rgba(248,244,239,0.2);
+      font-family: 'Poppins', sans-serif;
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--warm-50);
+      letter-spacing: -0.3px;
+      cursor: pointer;
+      transition: background 0.14s;
+    }
+    .hero__cta:hover { background: #1a1a1a; }
+    .hero__cta svg { width: 16px; height: 16px; }
+
+    /* ── Ultimi articoli ── */
+    .articles {
+      background: var(--warm-100);
+      padding: 64px 80px 88px;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+      align-items: center;
+    }
+
+    .articles__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 1376px;
+      border-bottom: 1px solid var(--dark-200);
+      padding-bottom: 0;
+      padding-top: 8px;
+    }
+
+    .articles__title-wrap {
+      display: flex;
+      align-items: flex-end;
+      height: 42px;
+    }
+
+    .articles__title {
+      font-family: 'Poppins', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--dark-700);
+      text-transform: uppercase;
+      letter-spacing: -0.24px;
+      border-bottom: 4px solid var(--orange);
+      padding-bottom: 16px;
+      white-space: nowrap;
+    }
+
+    .articles__see-all {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--orange);
+      letter-spacing: -0.3px;
+      text-decoration: underline;
+      text-decoration-color: var(--orange);
+    }
+    .articles__see-all-icon {
+      width: 24px; height: 24px;
+      border-radius: 999px;
+      background: var(--orange);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .articles__see-all-icon svg { width: 10px; height: 10px; stroke: white; }
+
+    .articles__grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      width: 100%;
+      max-width: 1376px;
+      padding: 0 16px;
+    }
+
+    .articles__grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+      width: 100%;
+      max-width: 1376px;
+      padding: 0 16px;
+    }
+
+    /* Card articolo */
+    .article-card {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding-bottom: 40px;
+      border-bottom: 1px solid var(--dark-100);
+      border-radius: 12px;
+      cursor: pointer;
+      position: relative;
+      isolation: isolate;
+      transition: border-color 0.24s ease;
+    }
+    /* Sfondo hover che espande verso fuori senza toccare il layout */
+    .article-card::before {
+      content: '';
+      position: absolute;
+      top: -16px;
+      left: -16px;
+      right: -16px;
+      bottom: 0;
+      border-radius: 14px;
+      background: var(--warm-300);
+      opacity: 0;
+      transition: opacity 0.24s ease;
+      pointer-events: none;
+      z-index: -1;
+    }
+    .article-card:hover::before { opacity: 1; }
+    .article-card:hover { border-bottom-color: transparent; }
+
+    .article-card__img {
+      width: 100%;
+      aspect-ratio: 432/240;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .article-card__img img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.38s ease;
+    }
+    .article-card:hover .article-card__img img {
+      transform: scale(1.05);
+    }
+    .article-card__img-bg {
+      position: absolute; inset: 0;
+      border-radius: 8px;
+    }
+    .article-card__tag-img {
+      position: absolute;
+      bottom: 8px; left: 8px;
+      background: rgba(27,27,27,0.64);
+      backdrop-filter: blur(12px);
+      border-radius: 2px;
+      padding: 4px 16px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--dark-50);
+      white-space: nowrap;
+    }
+
+    .article-card__body { display: flex; flex-direction: column; gap: 8px; padding-right: 16px; }
+    .article-card__rubrica {
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--orange);
+      letter-spacing: 0.56px;
+      text-transform: uppercase;
+    }
+    .article-card__title {
+      font-family: 'Poppins', sans-serif;
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--dark-800);
+      line-height: 1.2;
+      letter-spacing: -0.84px;
+      font-feature-settings: 'ss02' 1;
+    }
+    .article-card--featured .article-card__title { font-size: 32px; letter-spacing: -0.96px; }
+
+    .article-card__excerpt {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 17px;
+      font-weight: 400;
+      color: var(--dark-700);
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .article-card__meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding-top: 16px;
+    }
+
+    .article-card__time {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .article-card__time img { width: 18px; height: 18px; }
+    .article-card__time span {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--dark-600);
+      white-space: nowrap;
+    }
+
+    .article-card__age {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--orange-lt);
+      background: var(--warm-50);
+      font-family: 'Poppins', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--orange);
+      letter-spacing: 0.48px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    /* Card featured (abbonati) */
+    .article-card--sub {
+      background: var(--warm-400);
+      border: 1px solid var(--dark-200);
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      align-self: stretch;
+    }
+    .article-card--sub .article-card__body { padding-right: 0; }
+
+    .badge-sub {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: var(--orange);
+      font-family: 'Poppins', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--orange-pale);
+      letter-spacing: 0.48px;
+      text-transform: uppercase;
+      width: fit-content;
+    }
+    .badge-sub svg { width: 14px; height: 14px; stroke: var(--orange-pale); }
+
+    /* ── Guide gratuite ── */
+    .guides {
+      background: var(--warm-400);
+      padding: 64px 80px 88px;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .guides__header {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      align-items: center;
+      width: 100%;
+      max-width: 1376px;
+      text-align: center;
+    }
+
+    .guides__title {
+      font-family: 'Poppins', sans-serif;
+      font-size: 52px;
+      font-weight: 600;
+      color: var(--dark-800);
+      letter-spacing: -1.68px;
+      font-feature-settings: 'ss02' 1;
+    }
+
+    .guides__sub {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 19px;
+      color: var(--dark-700);
+      line-height: 1.5;
+    }
+    .guides__sub strong { font-weight: 600; }
+
+    .guides__bar {
+      width: 120px; height: 8px;
+      border-radius: 999px;
+      background: var(--orange);
+    }
+
+    .guides__row {
+      display: flex;
+      gap: 16px;
+      width: 100%;
+      max-width: 1376px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 4px;
+    }
+    .guides__row::-webkit-scrollbar { display: none; }
+
+    /* Card guida */
+    .guide-card {
+      background: var(--warm-50);
+      border-radius: 16px;
+      padding: 16px 16px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      flex-shrink: 0;
+      width: 300px;
+    }
+
+    .guide-card__img {
+      width: 100%;
+      height: 280px;
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+    }
+    .guide-card__img img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .guide-card__img-bg { position: absolute; inset: 0; border-radius: 12px; }
+
+    .guide-card__badge {
+      position: absolute;
+      top: 12px;
+      left: auto;
+      right: auto;
+      /* Figma: left: 186px — approximately right-aligned */
+      right: 12px;
+      background: var(--dark-800);
+      border: 1px solid var(--dark-800);
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--warm-50);
+      letter-spacing: 0.48px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .guide-card__body { display: flex; flex-direction: column; gap: 8px; }
+    .guide-card__title {
+      font-family: 'Poppins', sans-serif;
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--dark-800);
+      line-height: 1.1;
+      letter-spacing: -0.96px;
+      font-feature-settings: 'ss02' 1;
+    }
+    .guide-card__excerpt {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--dark-700);
+      line-height: 1.4;
+    }
+    .guide-card__link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--orange);
+      letter-spacing: -0.3px;
+      text-decoration: underline;
+    }
+    .guide-card__link-icon {
+      width: 20px; height: 20px;
+      border-radius: 999px;
+      background: var(--orange);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: rotate(90deg);
+    }
+    .guide-card__link-icon svg { width: 8px; height: 8px; stroke: white; }
+
+    /* ── Footer ── */
+    .footer {
+      background: #1B1B1B;
+      padding: 64px 72px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+    }
+
+    .footer__top {
+      display: grid;
+      grid-template-columns: 268px 1fr 1fr 1fr;
+      gap: 40px;
+      align-items: start;
+      padding-bottom: 24px;
+      border-bottom: 1px solid #474645;
+      width: 100%;
+    }
+
+    .footer__logo {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      align-items: flex-start;
+    }
+    .footer__logo img {
+      height: 40px;
+      width: auto;
+    }
+    .footer__logo-text {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .footer__claim {
+      font-family: 'Poppins', sans-serif;
+      font-size: 18px;
+      font-weight: 500;
+      color: #F2F0EC;
+      line-height: 1.4;
+      letter-spacing: -0.3px;
+    }
+    .footer__stat {
+      font-family: 'Poppins', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: #F2F0EC;
+      line-height: 1.4;
+      letter-spacing: -0.3px;
+    }
+    .footer__stat span { color: var(--orange); }
+
+    .footer__nav-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: #F2F0EC;
+      letter-spacing: 0.99px;
+      text-transform: uppercase;
+      line-height: 18.15px;
+      margin-bottom: 27px;
+    }
+    .footer__nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      list-style: none;
+    }
+    .footer__nav-list a {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      color: #C7C6C3;
+      line-height: 1.2;
+      transition: color 0.14s;
+    }
+    .footer__nav-list a:hover { color: white; }
+
+    .footer__bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      width: 100%;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 400;
+      color: #F2F0EC;
+      line-height: 1.3;
+    }
+
+    /* ══════════════════════════════════════
+       MOBILE — bottom nav (placeholder)
+    ══════════════════════════════════════ */
+    /* ── Mobile tabbar (hidden on desktop) ── */
+    .mobile-tabbar { display: none; }
+
+    /* ── Nav CTA: testo long/short ── */
+    .cta-short  { display: none; }
+    .cta-long   { display: inline; }
+    .cta-chevron { display: none; width: 18px; height: 18px; flex-shrink: 0; }
+
+    @media (max-width: 900px) {
+      /* — Nav principale mobile — */
+      .nav-main {
+        height: auto;
+        padding: 1rem;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .nav-main__inner {
+        justify-content: space-between;
+        width: 100%;
+      }
+      .nav-main__center { display: none; }
+
+      /* CTA: testo corto + chevron */
+      .cta-long    { display: none; }
+      .cta-short   { display: inline; }
+      .cta-chevron { display: inline-flex; }
+      .nav-cta {
+        margin-left: 0;
+        padding: 6px 10px 6px 12px;
+        gap: 2px;
+        font-weight: 600;
+      }
+
+      /* — Nav rubriche mobile: row singola, scroll orizzontale — */
+      .nav-rubriche {
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        padding: 12px 16px !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        gap: 8px !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .nav-rubriche::-webkit-scrollbar { display: none; }
+      .nav-rubriche__inner {
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+        flex-shrink: 0;
+        gap: 8px;
+      }
+
+      /* Stato scrolled mobile: padding verticale invariato */
+      .is-scrolled .nav-rubriche {
+        padding: 12px 16px !important;
+        height: auto !important;
+        gap: 8px !important;
+      }
+      .is-scrolled .rub-cta { display: none; }
+      .is-scrolled .rub-sep  { display: none; }
+
+      /* — Hero mobile: colonna singola — */
+      .hero__container {
+        grid-template-columns: 1fr;
+        height: auto;
+        max-width: 100%;
+      }
+      .hero__slides { height: 200px; }
+      .hero__body {
+        height: auto;
+        min-height: unset;
+        padding: 0px 16px 28px;
+        justify-content: flex-start;
+        gap: 10px;
+      }
+      .hero__content-wrap { min-height: 360px; }
+      .hero__content { gap: 16px; }
+      .hero__title {
+        font-size: 30px;
+        letter-spacing: -0.9px;
+        line-height: 1.1;
+      }
+      .hero__excerpt { font-size: 18px; }
+      .hero__author { display: none; }
+      .hero__cta {
+        height: 48px;
+        padding: 0 32px;
+        font-size: 16px;
+      }
+
+      /* — Bottom tab bar — */
+      .mobile-tabbar {
+        display: flex;
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        z-index: 950;
+        align-items: flex-end;
+        justify-content: center;
+        padding: 0 4px 20px;
+        min-height: 69px;
+        background: rgba(255,255,255,0.96);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-top: 1px solid rgba(0,0,0,0.10);
+        overflow: visible;
+      }
+
+      .tab-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 4px;
+        height: 49px;
+        position: relative;
+        text-decoration: none;
+        color: var(--dark-300);
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+      }
+      .tab-item--active { color: var(--orange); }
+      .tab-item__bar {
+        position: absolute;
+        top: 0; left: 50%;
+        transform: translateX(-50%);
+        width: 32px; height: 3px;
+        border-radius: 2px;
+        background: var(--orange);
+        opacity: 0;
+      }
+      .tab-item--active .tab-item__bar { opacity: 1; }
+      .tab-item svg { width: 24px; height: 24px; }
+
+      /* FAB centrale */
+      .tab-fab-wrap {
+        flex-shrink: 0;
+        width: 73px;
+        height: 49px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        padding-bottom: 0;
+      }
+      .tab-fab {
+        position: absolute;
+        top: -24px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 52px; height: 52px;
+        border-radius: 50%;
+        background: var(--orange);
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 0 3px white,
+                    0 4px 16px rgba(244,124,32,0.36),
+                    0 1px 4px rgba(244,124,32,0.22);
+      }
+      .tab-fab svg { width: 22px; height: 22px; stroke: white; }
+      .tab-fab-label {
+        position: absolute;
+        bottom: -3px;
+        font-family: 'Poppins', sans-serif;
+        font-size: 9.8px;
+        font-weight: 600;
+        color: var(--orange);
+        white-space: nowrap;
+      }
+
+      /* Body padding-bottom per la tab bar */
+      body { padding-bottom: 80px !important; }
+
+      /* Footer: spazio extra per non finire sotto la tab bar */
+      .site-footer { padding-bottom: 80px; }
+
+      /* ── Articoli mobile ── */
+      .articles {
+        padding: 40px 0 88px;
+        gap: 40px;
+      }
+      .articles__header {
+        padding: 8px 16px 0;
+        max-width: 100%;
+      }
+      .articles__title { font-size: 21px; letter-spacing: -0.21px; }
+
+      .articles__grid-2,
+      .articles__grid-3 {
+        grid-template-columns: 1fr;
+        gap: 0;
+        padding: 0 16px;
+        max-width: 100%;
+      }
+
+      .article-card {
+        padding-bottom: 32px;
+        border-bottom: 1px solid var(--dark-100);
+        gap: 16px;
+      }
+      .article-card + .article-card { padding-top: 32px; }
+
+      /* Rimuovi padding-right nel body su mobile */
+      .article-card__body { padding-right: 0; }
+
+      /* Title più piccolo su mobile */
+      .article-card__title { font-size: 24px; letter-spacing: -0.72px; }
+      .article-card--featured .article-card__title { font-size: 24px; letter-spacing: -0.72px; }
+
+      /* Excerpt */
+      .article-card__excerpt { font-size: 16px; line-height: 1.4; }
+
+      /* Card abbonati: no padding-bottom border, usa il proprio bordo */
+      .article-card--sub {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+      .article-card--sub + .article-card { padding-top: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     HEADER
+══════════════════════════════════════ -->
+<header class="site-header" id="js-header">
+
+  <!-- Nav principale (bianca) -->
+  <div class="nav-main">
+    <div class="nav-main__inner">
+
+      <!-- Logo -->
+      <a href="#" class="logo" aria-label="Uppa — homepage">
+        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEwIiBoZWlnaHQ9IjQwIiB2aWV3Qm94PSIwIDAgMTEwIDQwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8ZyBjbGlwLXBhdGg9InVybCgjY2xpcDBfNDVfMzY4MCkiPgo8cGF0aCBkPSJNMjEuMTM1OCA4LjA1MjI1QzIwLjA4NzEgOC4wNTIyNSAxOS4xOTM0IDguNDI0NDMgMTguNDUxNyA5LjE3MTUxQzE3LjcxMDEgOS45MTg1OSAxNy4zMzc5IDEwLjc3NDMgMTcuMzM3OSAxMS43Mzg3QzE3LjMzNzkgMTIuNzYyOSAxNy43MTAxIDEzLjY1NjcgMTguNDUxNyAxNC40MTc0QzE5LjE5MzQgMTUuMTc4IDIwLjA4OTkgMTUuNTU4NCAyMS4xMzU4IDE1LjU1ODRDMjIuMTgxNyAxNS41NTg0IDIzLjAyNjYgMTUuMTc4IDIzLjc1NDYgMTQuNDE3NEMyNC40ODI3IDEzLjY1NjcgMjQuODQ2NyAxMi43NjI5IDI0Ljg0NjcgMTEuNzM4N0MyNC44NDY3IDEwLjc3NDMgMjQuNDgyNyA5LjkxNTg3IDIzLjc1NDYgOS4xNzE1MUMyMy4wMjY2IDguNDI0NDMgMjIuMTU0NSA4LjA1MjI1IDIxLjEzNTggOC4wNTIyNVY4LjA1MjI1WiIgZmlsbD0iI0ZFNjYwMCIvPgo8cGF0aCBkPSJNMTcuNDU0NSAxOS42Nzk1QzE3LjQ1NDUgMjEuNDUzNSAxNy4wMzA3IDIyLjg3OTcgMTYuMTg1OCAyMy45NjA5QzE1LjM0MDkgMjUuMDQyMSAxNC4wNTg3IDI1LjU4MjggMTIuMzQxOCAyNS41ODI4QzEwLjYyNDggMjUuNTgyOCA5LjM4MzMyIDI1LjA0MjEgOC41Mzg0NCAyMy45NjA5QzcuNjkzNTYgMjIuODc5NyA3LjI3MjQ4IDIxLjQ1MzUgNy4yNzI0OCAxOS42Nzk1VjEwLjA4MTVIMFYyMC4wOTUxQzAgMjIuNDc3NiAwLjQ5OTg2NCAyNC41ODMgMS40OTY4OCAyNi40MTEzQzIuNDkzODkgMjguMjM5NyAzLjkyMDEzIDI5LjY2ODYgNS43NzgzMiAzMC42OTI4QzcuNjMzNzkgMzEuNzE3IDkuODIzNDIgMzIuMjMwNCAxMi4zNDQ1IDMyLjIzMDRDMTQuODY1NSAzMi4yMzA0IDE3LjA2MDYgMzEuNzE3IDE4LjkzMjQgMzAuNjkyOEMyMC44MDE0IDI5LjY2ODYgMjIuMjM1OCAyOC4yMzk3IDIzLjIzMjggMjYuNDExM0MyNC4yMjk4IDI0LjU4MyAyNC43Mjk3IDIyLjQ3NzYgMjQuNzI5NyAyMC4wOTUxVjE4LjEzMUgxNy40NTcyVjE5LjY3OTVIMTcuNDU0NVoiIGZpbGw9IiNGRTY2MDAiLz4KPHBhdGggZD0iTTcuMzE1NDYgNy41MDg4M0M4LjMzNDIgNy41MDg4MyA5LjIwNjI1IDcuMTI4NSA5LjkzNDMxIDYuMzY3ODNDMTAuNjYyNCA1LjYwNzE3IDExLjAyNjQgNC43MTMzOSAxMS4wMjY0IDMuNjg5MjFDMTEuMDI2NCAyLjcyMjA5IDEwLjY2MjQgMS44NjYzNCA5LjkzNDMxIDEuMTE5MjZDOS4yMDYyNSAwLjM3MjE4MSA4LjMzNDIgMCA3LjMxNTQ2IDBDNi4yOTY3MSAwIDUuMzczMDUgMC4zNzIxODEgNC42MzE0MSAxLjExOTI2QzMuODg5NzYgMS44NjYzNCAzLjUxNzU4IDIuNzIyMDkgMy41MTc1OCAzLjY4OTIxQzMuNTE3NTggNC43MTMzOSAzLjg4OTc2IDUuNjA3MTcgNC42MzE0MSA2LjM2NzgzQzUuMzczMDUgNy4xMjg1IDYuMjY5NTUgNy41MDg4MyA3LjMxNTQ2IDcuNTA4ODNaIiBmaWxsPSIjRkU2NjAwIi8+CjxwYXRoIGQ9Ik0xMDcuNzAyIDI2LjA4MjhDMTA2Ljc0NiAyNi4wODI4IDEwNS44MzMgMjUuNTAxNCAxMDUuODMzIDI0LjA4ODhMMTA1LjgyOCAyMy40OTM4VjEwLjA3NjNIOTkuNDI3MlYxMi4xOTUyQzk3Ljc5MTggMTAuNDIxMyA5NS41MzQyIDkuNTM1NjQgOTIuNjUxOSA5LjUzNTY0QzkwLjg3NzkgOS41MzU2NCA4OS4xNzQ2IDEwLjAwMDIgODcuNTM5MSAxMC45MjkzQzg1LjkwMzcgMTEuODU4NCA4NC41NzUzIDEzLjE4NjggODMuNTQ4NCAxNC45MjAxQzgyLjUyNDIgMTYuNjUzMyA4Mi4wMTA3IDE4LjYzOTEgODIuMDEwNyAyMC44ODMxQzgyLjAxMDcgMjMuMTI3MSA4Mi41MjQyIDI1LjExNTcgODMuNTQ4NCAyNi44NDg5Qzg0LjU3MjUgMjguNTgyMSA4NS45MDM3IDI5LjkxMDUgODcuNTM5MSAzMC44Mzk2Qzg5LjE3NDYgMzEuNzY4NyA5MC44Nzc5IDMyLjIzMDYgOTIuNjUxOSAzMi4yMzA2Qzk1LjYzNzUgMzIuMjMwNiA5OC40NDM4IDMxLjE5ODIgMTAwLjQwNSAyOC45ODQyQzEwMS4zMTggMzEuMTMwMyAxMDMuNDU5IDMyLjIzNiAxMDUuNzkgMzIuMjM2QzEwNi44NjMgMzIuMjM2IDEwNy45NzEgMzEuOTk5NiAxMDkuMDE0IDMxLjUyN1YyNi4wODAxQzEwOS4wMTQgMjYuMDgwMSAxMDguMTU5IDI2LjA4NTUgMTA3LjY5OSAyNi4wODU1TDEwNy43MDIgMjYuMDgyOFpNOTcuNzgzNiAyNC42MDIyQzk2LjgwMDIgMjUuNTg1NiA5NS41NTg3IDI2LjA3NzMgOTQuMDY0NSAyNi4wNzczQzkyLjU3MDQgMjYuMDc3MyA5MS4zMjg5IDI1LjU4NTYgOTAuMzQ1NCAyNC42MDIyQzg5LjM2MiAyMy42MTg4IDg4Ljg3MDMgMjIuMzc3MyA4OC44NzAzIDIwLjg4MzFDODguODcwMyAxOS4zODg5IDg5LjM2MiAxOC4xNDc0IDkwLjM0NTQgMTcuMTY0QzkxLjMyODkgMTYuMTgwNiA5Mi41Njc3IDE1LjY4ODkgOTQuMDY0NSAxNS42ODg5Qzk1LjU2MTQgMTUuNjg4OSA5Ni44MDAyIDE2LjE4MDYgOTcuNzgzNiAxNy4xNjRDOTguNzY3MSAxOC4xNDc0IDk5LjI1ODggMTkuMzg2MiA5OS4yNTg4IDIwLjg4MzFDOTkuMjU4OCAyMi4zOCA5OC43NjcxIDIzLjYxODggOTcuNzgzNiAyNC42MDIyWiIgZmlsbD0iI0ZFNjYwMCIvPgo8cGF0aCBkPSJNNzQuMTIxMiAxMC45NTM3QzcyLjQ4NTggMTAuMDExIDcwLjc4MjUgOS41NDEwMiA2OS4wMDg1IDkuNTQxMDJDNjYuMTI2MSA5LjU0MTAyIDYzLjg2ODYgMTAuNDI5NCA2Mi4yMzMyIDEyLjIwMDZWMTAuMDgxNkg1NS43OTJWNDAuMDAyOEg2Mi43MzNWMzAuMDNDNjQuMjg0MiAzMS40OTk3IDY2LjM3NjEgMzIuMjMzMiA2OS4wMDg1IDMyLjIzMzJDNzAuNzc5OCAzMi4yMzMyIDcyLjQ4NTggMzEuNzY4NyA3NC4xMjEyIDMwLjg0MjNDNzUuNzU2NyAyOS45MTMyIDc3LjA4NTEgMjguNTg0OCA3OC4xMTIgMjYuODUxNUM3OS4xMzYyIDI1LjEyMSA3OS42NDk2IDIzLjEzMjQgNzkuNjQ5NiAyMC44ODg1Qzc5LjY0OTYgMTguNjQ0NSA3OS4xMzYyIDE2LjY2NDEgNzguMTEyIDE0Ljk0NDRDNzcuMDg3OCAxMy4yMjc1IDc1Ljc1NjcgMTEuODk2NCA3NC4xMjEyIDEwLjk1MzdWMTAuOTUzN1pNNzEuMzE0OSAyNC42MDQ5QzcwLjMzMTUgMjUuNTg4MyA2OS4wOTI3IDI2LjA4IDY3LjU5NTkgMjYuMDhDNjYuMDk5IDI2LjA4IDY0Ljg2MDIgMjUuNTg4MyA2My44NzY4IDI0LjYwNDlDNjIuODkzMyAyMy42MjE0IDYyLjQwMTYgMjIuMzgyNiA2Mi40MDE2IDIwLjg4NThDNjIuNDAxNiAxOS4zODg5IDYyLjg5MzMgMTguMTUwMSA2My44NzY4IDE3LjE2NjdDNjQuODYwMiAxNi4xODMyIDY2LjA5OSAxNS42OTE1IDY3LjU5NTkgMTUuNjkxNUM2OS4wOTI3IDE1LjY5MTUgNzAuMzMxNSAxNi4xODMyIDcxLjMxNDkgMTcuMTY2N0M3Mi4yOTg0IDE4LjE1MDEgNzIuNzkwMSAxOS4zODg5IDcyLjc5MDEgMjAuODg1OEM3Mi43OTAxIDIyLjM4MjYgNzIuMjk4NCAyMy42MjE0IDcxLjMxNDkgMjQuNjA0OVoiIGZpbGw9IiNGRTY2MDAiLz4KPHBhdGggZD0iTTQ3LjAwOTIgMTAuOTUzN0M0NS4zNzM3IDEwLjAxMSA0My42NzA0IDkuNTQxMDIgNDEuODk2NCA5LjU0MTAyQzM5LjAxNCA5LjU0MTAyIDM2Ljc1NjUgMTAuNDI5NCAzNS4xMjM4IDEyLjIwMDZWMTAuMDgxNkgyOC42ODI2VjQwLjAwMjhIMzUuNjIzN1YzMC4wM0MzNy4xNzQ5IDMxLjQ5OTcgMzkuMjY2NyAzMi4yMzMyIDQxLjg5OTEgMzIuMjMzMkM0My42NzMxIDMyLjIzMzIgNDUuMzc2NCAzMS43Njg3IDQ3LjAxMTkgMzAuODQyM0M0OC42NDczIDI5LjkxMzIgNDkuOTc1NyAyOC41ODQ4IDUxLjAwMjYgMjYuODUxNUM1Mi4wMjY4IDI1LjEyMSA1Mi41NDAzIDIzLjEzMjQgNTIuNTQwMyAyMC44ODg1QzUyLjU0MDMgMTguNjQ0NSA1Mi4wMjY4IDE2LjY2NDEgNTEuMDAyNiAxNC45NDQ0QzQ5Ljk3ODUgMTMuMjI3NSA0OC42NDczIDExLjg5NjQgNDcuMDExOSAxMC45NTM3SDQ3LjAwOTJaTTQ0LjIwMjkgMjQuNjA0OUM0My4yMTk0IDI1LjU4ODMgNDEuOTgwNiAyNi4wOCA0MC40ODM4IDI2LjA4QzM4Ljk4NjkgMjYuMDggMzcuNzQ4MSAyNS41ODgzIDM2Ljc2NDcgMjQuNjA0OUMzNS43ODEyIDIzLjYyMTQgMzUuMjg5NSAyMi4zODI2IDM1LjI4OTUgMjAuODg1OEMzNS4yODk1IDE5LjM4ODkgMzUuNzgxMiAxOC4xNTAxIDM2Ljc2NDcgMTcuMTY2N0MzNy43NDgxIDE2LjE4MzIgMzguOTg2OSAxNS42OTE1IDQwLjQ4MzggMTUuNjkxNUM0MS45ODA2IDE1LjY5MTUgNDMuMjE5NCAxNi4xODMyIDQ0LjIwMjkgMTcuMTY2N0M0NS4xODYzIDE4LjE1MDEgNDUuNjc4IDE5LjM4ODkgNDUuNjc4IDIwLjg4NThDNDUuNjc4IDIyLjM4MjYgNDUuMTg2MyAyMy42MjE0IDQ0LjIwMjkgMjQuNjA0OVoiIGZpbGw9IiNGRTY2MDAiLz4KPC9nPgo8ZGVmcz4KPGNsaXBQYXRoIGlkPSJjbGlwMF80NV8zNjgwIj4KPHJlY3Qgd2lkdGg9IjEwOS4wMTciIGhlaWdodD0iNDAiIGZpbGw9IndoaXRlIi8+CjwvY2xpcFBhdGg+CjwvZGVmcz4KPC9zdmc+Cg==" alt="Uppa" style="height:36px;width:auto;">
+      </a>
+
+      <!-- Centro: nav-links + search -->
+      <div class="nav-main__center">
+        <nav class="nav-links" aria-label="Navigazione principale">
+          <div class="nav-dropdown" id="dropdown-chisiamo">
+            <button type="button" class="nav-dropdown__trigger" aria-haspopup="true" aria-expanded="false">Chi siamo <span class="chevron"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span></button>
+            <div class="nav-dropdown__panel" role="menu">
+              <a href="#" role="menuitem">Cos'è Uppa</a>
+              <a href="#" role="menuitem">Uppa Magazine</a>
+              <a href="#" role="menuitem">App Uppa</a>
+            </div>
+          </div>
+          <a href="#">Rubriche</a>
+          <a href="#">Guide</a>
+          <a href="#">Percorsi</a>
+          <div class="nav-dropdown" id="dropdown-fasce">
+            <button type="button" class="nav-dropdown__trigger" aria-haspopup="true" aria-expanded="false">Fasce d'età <span class="chevron"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span></button>
+            <div class="nav-dropdown__panel" role="menu">
+              <a href="#" role="menuitem">In attesa</a>
+              <a href="#" role="menuitem">0–12 mesi</a>
+              <a href="#" role="menuitem">1–3 anni</a>
+              <a href="#" role="menuitem">3–6 anni</a>
+              <a href="#" role="menuitem">6+ anni</a>
+            </div>
+          </div>
+          <a href="#">Libri</a>
+        </nav>
+        <div class="nav-search" role="search">
+          <span>Cerca su Uppa</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <button class="nav-cta" type="button">
+        <span class="cta-long">Abbonati al Magazine</span>
+        <span class="cta-short">Abbonati</span>
+        <svg class="cta-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Nav rubriche (arancione) -->
+  <nav class="nav-rubriche" aria-label="Filtra per rubrica">
+    <div class="nav-rubriche__inner">
+
+      <!-- Logo bianco (appare allo scroll) -->
+      <img class="rub-logo" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEwIiBoZWlnaHQ9IjQwIiB2aWV3Qm94PSIwIDAgMTEwIDQwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8ZyBjbGlwLXBhdGg9InVybCgjY2xpcDBfNDVfMzY4MCkiPgo8cGF0aCBkPSJNMjEuMTM1OCA4LjA1MjI1QzIwLjA4NzEgOC4wNTIyNSAxOS4xOTM0IDguNDI0NDMgMTguNDUxNyA5LjE3MTUxQzE3LjcxMDEgOS45MTg1OSAxNy4zMzc5IDEwLjc3NDMgMTcuMzM3OSAxMS43Mzg3QzE3LjMzNzkgMTIuNzYyOSAxNy43MTAxIDEzLjY1NjcgMTguNDUxNyAxNC40MTc0QzE5LjE5MzQgMTUuMTc4IDIwLjA4OTkgMTUuNTU4NCAyMS4xMzU4IDE1LjU1ODRDMjIuMTgxNyAxNS41NTg0IDIzLjAyNjYgMTUuMTc4IDIzLjc1NDYgMTQuNDE3NEMyNC40ODI3IDEzLjY1NjcgMjQuODQ2NyAxMi43NjI5IDI0Ljg0NjcgMTEuNzM4N0MyNC44NDY3IDEwLjc3NDMgMjQuNDgyNyA5LjkxNTg3IDIzLjc1NDYgOS4xNzE1MUMyMy4wMjY2IDguNDI0NDMgMjIuMTU0NSA4LjA1MjI1IDIxLjEzNTggOC4wNTIyNVY4LjA1MjI1WiIgZmlsbD0iI0ZFNjYwMCIvPgo8cGF0aCBkPSJNMTcuNDU0NSAxOS42Nzk1QzE3LjQ1NDUgMjEuNDUzNSAxNy4wMzA3IDIyLjg3OTcgMTYuMTg1OCAyMy45NjA5QzE1LjM0MDkgMjUuMDQyMSAxNC4wNTg3IDI1LjU4MjggMTIuMzQxOCAyNS41ODI4QzEwLjYyNDggMjUuNTgyOCA5LjM4MzMyIDI1LjA0MjEgOC41Mzg0NCAyMy45NjA5QzcuNjkzNTYgMjIuODc5NyA3LjI3MjQ4IDIxLjQ1MzUgNy4yNzI0OCAxOS42Nzk1VjEwLjA4MTVIMFYyMC4wOTUxQzAgMjIuNDc3NiAwLjQ5OTg2NCAyNC41ODMgMS40OTY4OCAyNi40MTEzQzIuNDkzODkgMjguMjM5NyAzLjkyMDEzIDI5LjY2ODYgNS43NzgzMiAzMC42OTI4QzcuNjMzNzkgMzEuNzE3IDkuODIzNDIgMzIuMjMwNCAxMi4zNDQ1IDMyLjIzMDRDMTQuODY1NSAzMi4yMzA0IDE3LjA2MDYgMzEuNzE3IDE4LjkzMjQgMzAuNjkyOEMyMC44MDE0IDI5LjY2ODYgMjIuMjM1OCAyOC4yMzk3IDIzLjIzMjggMjYuNDExM0MyNC4yMjk4IDI0LjU4MyAyNC43Mjk3IDIyLjQ3NzYgMjQuNzI5NyAyMC4wOTUxVjE4LjEzMUgxNy40NTcyVjE5LjY3OTVIMTcuNDU0NVoiIGZpbGw9IiNGRTY2MDAiLz4KPHBhdGggZD0iTTcuMzE1NDYgNy41MDg4M0M4LjMzNDIgNy41MDg4MyA5LjIwNjI1IDcuMTI4NSA5LjkzNDMxIDYuMzY3ODNDMTAuNjYyNCA1LjYwNzE3IDExLjAyNjQgNC43MTMzOSAxMS4wMjY0IDMuNjg5MjFDMTEuMDI2NCAyLjcyMjA5IDEwLjY2MjQgMS44NjYzNCA5LjkzNDMxIDEuMTE5MjZDOS4yMDYyNSAwLjM3MjE4MSA4LjMzNDIgMCA3LjMxNTQ2IDBDNi4yOTY3MSAwIDUuMzczMDUgMC4zNzIxODEgNC42MzE0MSAxLjExOTI2QzMuODg5NzYgMS44NjYzNCAzLjUxNzU4IDIuNzIyMDkgMy41MTc1OCAzLjY4OTIxQzMuNTE3NTggNC43MTMzOSAzLjg4OTc2IDUuNjA3MTcgNC42MzE0MSA2LjM2NzgzQzUuMzczMDUgNy4xMjg1IDYuMjY5NTUgNy41MDg4MyA3LjMxNTQ2IDcuNTA4ODNaIiBmaWxsPSIjRkU2NjAwIi8+CjxwYXRoIGQ9Ik0xMDcuNzAyIDI2LjA4MjhDMTA2Ljc0NiAyNi4wODI4IDEwNS44MzMgMjUuNTAxNCAxMDUuODMzIDI0LjA4ODhMMTA1LjgyOCAyMy40OTM4VjEwLjA3NjNIOTkuNDI3MlYxMi4xOTUyQzk3Ljc5MTggMTAuNDIxMyA5NS41MzQyIDkuNTM1NjQgOTIuNjUxOSA5LjUzNTY0QzkwLjg3NzkgOS41MzU2NCA4OS4xNzQ2IDEwLjAwMDIgODcuNTM5MSAxMC45MjkzQzg1LjkwMzcgMTEuODU4NCA4NC41NzUzIDEzLjE4NjggODMuNTQ4NCAxNC45MjAxQzgyLjUyNDIgMTYuNjUzMyA4Mi4wMTA3IDE4LjYzOTEgODIuMDEwNyAyMC44ODMxQzgyLjAxMDcgMjMuMTI3MSA4Mi41MjQyIDI1LjExNTcgODMuNTQ4NCAyNi44NDg5Qzg0LjU3MjUgMjguNTgyMSA4NS45MDM3IDI5LjkxMDUgODcuNTM5MSAzMC44Mzk2Qzg5LjE3NDYgMzEuNzY4NyA5MC44Nzc5IDMyLjIzMDYgOTIuNjUxOSAzMi4yMzA2Qzk1LjYzNzUgMzIuMjMwNiA5OC40NDM4IDMxLjE5ODIgMTAwLjQwNSAyOC45ODQyQzEwMS4zMTggMzEuMTMwMyAxMDMuNDU5IDMyLjIzNiAxMDUuNzkgMzIuMjM2QzEwNi44NjMgMzIuMjM2IDEwNy45NzEgMzEuOTk5NiAxMDkuMDE0IDMxLjUyN1YyNi4wODAxQzEwOS4wMTQgMjYuMDgwMSAxMDguMTU5IDI2LjA4NTUgMTA3LjY5OSAyNi4wODU1TDEwNy43MDIgMjYuMDgyOFpNOTcuNzgzNiAyNC42MDIyQzk2LjgwMDIgMjUuNTg1NiA5NS41NTg3IDI2LjA3NzMgOTQuMDY0NSAyNi4wNzczQzkyLjU3MDQgMjYuMDc3MyA5MS4zMjg5IDI1LjU4NTYgOTAuMzQ1NCAyNC42MDIyQzg5LjM2MiAyMy42MTg4IDg4Ljg3MDMgMjIuMzc3MyA4OC44NzAzIDIwLjg4MzFDODguODcwMyAxOS4zODg5IDg5LjM2MiAxOC4xNDc0IDkwLjM0NTQgMTcuMTY0QzkxLjMyODkgMTYuMTgwNiA5Mi41Njc3IDE1LjY4ODkgOTQuMDY0NSAxNS42ODg5Qzk1LjU2MTQgMTUuNjg4OSA5Ni44MDAyIDE2LjE4MDYgOTcuNzgzNiAxNy4xNjRDOTguNzY3MSAxOC4xNDc0IDk5LjI1ODggMTkuMzg2MiA5OS4yNTg4IDIwLjg4MzFDOTkuMjU4OCAyMi4zOCA5OC43NjcxIDIzLjYxODggOTcuNzgzNiAyNC42MDIyWiIgZmlsbD0iI0ZFNjYwMCIvPgo8cGF0aCBkPSJNNzQuMTIxMiAxMC45NTM3QzcyLjQ4NTggMTAuMDExIDcwLjc4MjUgOS41NDEwMiA2OS4wMDg1IDkuNTQxMDJDNjYuMTI2MSA5LjU0MTAyIDYzLjg2ODYgMTAuNDI5NCA2Mi4yMzMyIDEyLjIwMDZWMTAuMDgxNkg1NS43OTJWNDAuMDAyOEg2Mi43MzNWMzAuMDNDNjQuMjg0MiAzMS40OTk3IDY2LjM3NjEgMzIuMjMzMiA2OS4wMDg1IDMyLjIzMzJDNzAuNzc5OCAzMi4yMzMyIDcyLjQ4NTggMzEuNzY4NyA3NC4xMjEyIDMwLjg0MjNDNzUuNzU2NyAyOS45MTMyIDc3LjA4NTEgMjguNTg0OCA3OC4xMTIgMjYuODUxNUM3OS4xMzYyIDI1LjEyMSA3OS42NDk2IDIzLjEzMjQgNzkuNjQ5NiAyMC44ODg1Qzc5LjY0OTYgMTguNjQ0NSA3OS4xMzYyIDE2LjY2NDEgNzguMTEyIDE0Ljk0NDRDNzcuMDg3OCAxMy4yMjc1IDc1Ljc1NjcgMTEuODk2NCA3NC4xMjEyIDEwLjk1MzdWMTAuOTUzN1pNNzEuMzE0OSAyNC42MDQ5QzcwLjMzMTUgMjUuNTg4MyA2OS4wOTI3IDI2LjA4IDY3LjU5NTkgMjYuMDhDNjYuMDk5IDI2LjA4IDY0Ljg2MDIgMjUuNTg4MyA2My44NzY4IDI0LjYwNDlDNjIuODkzMyAyMy42MjE0IDYyLjQwMTYgMjIuMzgyNiA2Mi40MDE2IDIwLjg4NThDNjIuNDAxNiAxOS4zODg5IDYyLjg5MzMgMTguMTUwMSA2My44NzY4IDE3LjE2NjdDNjQuODYwMiAxNi4xODMyIDY2LjA5OSAxNS42OTE1IDY3LjU5NTkgMTUuNjkxNUM2OS4wOTI3IDE1LjY5MTUgNzAuMzMxNSAxNi4xODMyIDcxLjMxNDkgMTcuMTY2N0M3Mi4yOTg0IDE4LjE1MDEgNzIuNzkwMSAxOS4zODg5IDcyLjc5MDEgMjAuODg1OEM3Mi43OTAxIDIyLjM4MjYgNzIuMjk4NCAyMy42MjE0IDcxLjMxNDkgMjQuNjA0OVoiIGZpbGw9IiNGRTY2MDAiLz4KPHBhdGggZD0iTTQ3LjAwOTIgMTAuOTUzN0M0NS4zNzM3IDEwLjAxMSA0My42NzA0IDkuNTQxMDIgNDEuODk2NCA5LjU0MTAyQzM5LjAxNCA5LjU0MTAyIDM2Ljc1NjUgMTAuNDI5NCAzNS4xMjM4IDEyLjIwMDZWMTAuMDgxNkgyOC42ODI2VjQwLjAwMjhIMzUuNjIzN1YzMC4wM0MzNy4xNzQ5IDMxLjQ5OTcgMzkuMjY2NyAzMi4yMzMyIDQxLjg5OTEgMzIuMjMzMkM0My42NzMxIDMyLjIzMzIgNDUuMzc2NCAzMS43Njg3IDQ3LjAxMTkgMzAuODQyM0M0OC42NDczIDI5LjkxMzIgNDkuOTc1NyAyOC41ODQ4IDUxLjAwMjYgMjYuODUxNUM1Mi4wMjY4IDI1LjEyMSA1Mi41NDAzIDIzLjEzMjQgNTIuNTQwMyAyMC44ODg1QzUyLjU0MDMgMTguNjQ0NSA1Mi4wMjY4IDE2LjY2NDEgNTEuMDAyNiAxNC45NDQ0QzQ5Ljk3ODUgMTMuMjI3NSA0OC42NDczIDExLjg5NjQgNDcuMDExOSAxMC45NTM3SDQ3LjAwOTJaTTQ0LjIwMjkgMjQuNjA0OUM0My4yMTk0IDI1LjU4ODMgNDEuOTgwNiAyNi4wOCA0MC40ODM4IDI2LjA4QzM4Ljk4NjkgMjYuMDggMzcuNzQ4MSAyNS41ODgzIDM2Ljc2NDcgMjQuNjA0OUMzNS43ODEyIDIzLjYyMTQgMzUuMjg5NSAyMi4zODI2IDM1LjI4OTUgMjAuODg1OEMzNS4yODk1IDE5LjM4ODkgMzUuNzgxMiAxOC4xNTAxIDM2Ljc2NDcgMTcuMTY2N0MzNy43NDgxIDE2LjE4MzIgMzguOTg2OSAxNS42OTE1IDQwLjQ4MzggMTUuNjkxNUM0MS45ODA2IDE1LjY5MTUgNDMuMjE5NCAxNi4xODMyIDQ0LjIwMjkgMTcuMTY2N0M0NS4xODYzIDE4LjE1MDEgNDUuNjc4IDE5LjM4ODkgNDUuNjc4IDIwLjg4NThDNDUuNjc4IDIyLjM4MjYgNDUuMTg2MyAyMy42MjE0IDQ0LjIwMjkgMjQuNjA0OVoiIGZpbGw9IiNGRTY2MDAiLz4KPC9nPgo8ZGVmcz4KPGNsaXBQYXRoIGlkPSJjbGlwMF80NV8zNjgwIj4KPHJlY3Qgd2lkdGg9IjEwOS4wMTciIGhlaWdodD0iNDAiIGZpbGw9IndoaXRlIi8+CjwvY2xpcFBhdGg+CjwvZGVmcz4KPC9zdmc+Cg==" alt="Uppa" aria-hidden="true">
+
+      <!-- Separatore -->
+      <span class="rub-sep" aria-hidden="true"></span>
+
+      <!-- Label + Pills nello stesso blocco riga -->
+      <div class="nav-rubriche__inner">
+        <span class="rub-label">RUBRICHE:</span>
+        <a href="#" class="rub-pill">Gravidanza</a>
+        <a href="#" class="rub-pill">Nascita</a>
+        <a href="#" class="rub-pill">Bambino</a>
+        <a href="#" class="rub-pill">Educazione</a>
+        <a href="#" class="rub-pill">Alimentazione</a>
+        <a href="#" class="rub-pill">Medicina</a>
+        <a href="#" class="rub-pill">Psicologia</a>
+        <a href="#" class="rub-pill">Cultura</a>
+      </div>
+
+      <!-- CTA abbonati (appare allo scroll) -->
+      <div class="rub-cta">
+        <a href="#">Abbonati al Magazine</a>
+      </div>
+
+    </div>
+  </nav>
+
+</header>
+
+
+<!-- ══════════════════════════════════════
+     HERO
+══════════════════════════════════════ -->
+<section class="hero">
+  <div class="hero__container">
+
+  <!-- Immagini carousel (sinistra) -->
+  <div class="hero__slides" aria-hidden="true">
+    <div class="hero__slide is-active">
+      <img src="https://www.figma.com/api/mcp/asset/49bfbdde-b309-4869-861f-9d9cf10efbbc" alt="">
+    </div>
+    <div class="hero__slide">
+      <img src="https://www.figma.com/api/mcp/asset/0b5587ed-bd96-479e-b5a5-9bb79b2b7d60" alt="">
+    </div>
+    <div class="hero__slide">
+      <img src="https://www.figma.com/api/mcp/asset/41a52835-9286-42a1-90b5-57cb82ebcda5" alt="">
+    </div>
+  </div>
+
+  <!-- Contenuto carousel (destra) -->
+  <div class="hero__body">
+
+    <!-- Dot top: invisibili (placeholder posizione) -->
+    <div class="hero__dots-top" aria-hidden="true">
+      <span class="hero__dot is-active"></span>
+      <span class="hero__dot"></span>
+      <span class="hero__dot"></span>
+    </div>
+
+    <!-- Slide contenuti -->
+    <div class="hero__content-wrap">
+
+      <div class="hero__content is-active">
+        <div class="hero__titles">
+          <div class="hero__meta">
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTkuMTk1MzEgMTUuOTM1MUM5LjUwNTcgMTUuOTI2NSA5Ljc2NDYzIDE2LjE3MDYgOS43NzM0NCAxNi40ODFDOS43ODIwMSAxNi43OTE1IDkuNTM3MSAxNy4wNTA1IDkuMjI2NTYgMTcuMDU5MUM5LjE1MTM5IDE3LjA2MTIgOS4wNzU2NSAxNy4wNjIgOSAxNy4wNjJDOC45MjQ0IDE3LjA2MiA4Ljg0ODU3IDE3LjA2MTIgOC43NzM0NCAxNy4wNTkxQzguNDYzMTEgMTcuMDUwMyA4LjIxODk3IDE2Ljc5MTMgOC4yMjc1NCAxNi40ODFDOC4yMzYzNSAxNi4xNzA3IDguNDk0NCAxNS45MjY2IDguODA0NjkgMTUuOTM1MUM4Ljg2OTQ4IDE1LjkzNjggOC45MzQ3NSAxNS45MzcgOSAxNS45MzdDOS4wNjUyMiAxNS45MzcgOS4xMzA1NSAxNS45MzY4IDkuMTk1MzEgMTUuOTM1MVpNNS40MjI4NSAxNS42MTc3QzUuNTQ5OSAxNS4zMzQyIDUuODgyNTMgMTUuMjA3NCA2LjE2NjAyIDE1LjMzNDVDNi4yODQwMyAxNS4zODc0IDYuNDA0MDEgMTUuNDM2NSA2LjUyNTM5IDE1LjQ4MjlDNi44MTU2IDE1LjU5MzggNi45NjE0NCAxNS45MTkzIDYuODUwNTkgMTYuMjA5NUM2LjczOTcgMTYuNDk5NiA2LjQxNDIxIDE2LjY0NDUgNi4xMjQwMiAxNi41MzM3QzUuOTgyOCAxNi40Nzk3IDUuODQzMzIgMTYuNDIyNCA1LjcwNjA1IDE2LjM2MDhDNS40MjI2NiAxNi4yMzM4IDUuMjk2MDIgMTUuOTAxMSA1LjQyMjg1IDE1LjYxNzdaTTExLjgzNCAxNS4zMzQ1QzEyLjExNzUgMTUuMjA3NCAxMi40NTExIDE1LjMzNDIgMTIuNTc4MSAxNS42MTc3QzEyLjcwNDggMTUuOTAxIDEyLjU3ODEgMTYuMjMzOCAxMi4yOTQ5IDE2LjM2MDhDMTIuMTU3NyAxNi40MjIzIDEyLjAxODEgMTYuNDc5OCAxMS44NzcgMTYuNTMzN0MxMS41ODY4IDE2LjY0NDUgMTEuMjYxMyAxNi40OTk2IDExLjE1MDQgMTYuMjA5NUMxMS4wMzk1IDE1LjkxOTMgMTEuMTg1NCAxNS41OTM4IDExLjQ3NTYgMTUuNDgyOUMxMS41OTY3IDE1LjQzNjYgMTEuNzE2MiAxNS4zODcyIDExLjgzNCAxNS4zMzQ1Wk0zLjE2NDA2IDEzLjc0MzdDMy4zODk3OCAxMy41MzAzIDMuNzQ1NTYgMTMuNTQwNCAzLjk1ODk4IDEzLjc2NjFDNC4wNDgxNCAxMy44NjA0IDQuMTQwMTEgMTMuOTUyMyA0LjIzNDM4IDE0LjA0MTVDNC40NTk4NiAxNC4yNTUgNC40NzAxNCAxNC42MTA4IDQuMjU2ODQgMTQuODM2NEM0LjA0MzM3IDE1LjA2MjEgMy42ODY2NSAxNS4wNzIzIDMuNDYwOTQgMTQuODU4OUMzLjM1MTQ0IDE0Ljc1NTMgMy4yNDUxNiAxNC42NDgxIDMuMTQxNiAxNC41Mzg2QzIuOTI4MyAxNC4zMTI5IDIuOTM4NDEgMTMuOTU3MSAzLjE2NDA2IDEzLjc0MzdaTTE0LjA0MiAxMy43NjYxQzE0LjI1NTUgMTMuNTQwNCAxNC42MTEyIDEzLjUzMDIgMTQuODM2OSAxMy43NDM3QzE1LjA2MjUgMTMuOTU3IDE1LjA3MjUgMTQuMzEyOSAxNC44NTk0IDE0LjUzODZDMTQuNzU1OCAxNC42NDgxIDE0LjY0ODYgMTQuNzU1MyAxNC41MzkxIDE0Ljg1ODlDMTQuMzEzNCAxNS4wNzIgMTMuOTU3NSAxNS4wNjIgMTMuNzQ0MSAxNC44MzY0QzEzLjUzMDcgMTQuNjEwNyAxMy41NDA5IDE0LjI1NSAxMy43NjY2IDE0LjA0MTVDMTMuODYwOSAxMy45NTIzIDEzLjk1MjggMTMuODYwNCAxNC4wNDIgMTMuNzY2MVpNMS43OTEwMiAxMS4xNDk5QzIuMDgxMiAxMS4wMzkxIDIuNDA1NzYgMTEuMTg0OSAyLjUxNjYgMTEuNDc1MUMyLjU2MjkxIDExLjU5NjMgMi42MTMyIDExLjcxNTYgMi42NjYwMiAxMS44MzM1QzIuNzkzMDcgMTIuMTE3IDIuNjY2MyAxMi40NTA2IDIuMzgyODEgMTIuNTc3NkMyLjA5OTQ4IDEyLjcwNDUgMS43NjY4MSAxMi41Nzc2IDEuNjM5NjUgMTIuMjk0NEMxLjU3ODE0IDEyLjE1NzIgMS41MTk3NiAxMi4wMTc3IDEuNDY1ODIgMTEuODc2NUMxLjM1NDk3IDExLjU4NjMgMS41MDA4MSAxMS4yNjA4IDEuNzkxMDIgMTEuMTQ5OVpNMTUuNDgzNCAxMS40NzUxQzE1LjU5NDIgMTEuMTg0OSAxNS45MTk4IDExLjAzOTEgMTYuMjEgMTEuMTQ5OUMxNi41IDExLjI2MDggMTYuNjQ1IDExLjU4NjMgMTYuNTM0MiAxMS44NzY1QzE2LjQ4MDMgMTIuMDE3NiAxNi40MjI4IDEyLjE1NzMgMTYuMzYxMyAxMi4yOTQ0QzE2LjIzNDMgMTIuNTc3NiAxNS45MDE1IDEyLjcwNDMgMTUuNjE4MiAxMi41Nzc2QzE1LjMzNDcgMTIuNDUwNiAxNS4yMDc5IDEyLjExNyAxNS4zMzUgMTEuODMzNUMxNS4zODc3IDExLjcxNTcgMTUuNDM3MSAxMS41OTYyIDE1LjQ4MzQgMTEuNDc1MVpNOSAzLjkzNzAxQzkuMzEwNTggMy45MzcwMSA5LjU2MjM2IDQuMTg4OTcgOS41NjI1IDQuNDk5NTFWNy42MDg4OUM5LjkzODQ2IDcuNzYxMDcgMTAuMjM5NCA4LjA2MTA3IDEwLjM5MTYgOC40MzcwMUgxMkMxMi4zMTA2IDguNDM3MDEgMTIuNTYyNCA4LjY4ODk3IDEyLjU2MjUgOC45OTk1MUMxMi41NjI1IDkuMzEwMTcgMTIuMzEwNyA5LjU2MjAxIDEyIDkuNTYyMDFIMTAuMzkxNkMxMC4xNjkxIDEwLjExMTcgOS42Mjk1MSAxMC40OTk1IDkgMTAuNDk5NUM4LjE3MTc5IDEwLjQ5OTMgNy41IDkuODI3NzggNy41IDguOTk5NTFDNy41MDAxIDguMzcwMjggNy44ODgwOSA3LjgzMTQ5IDguNDM3NSA3LjYwODg5VjQuNDk5NTFDOC40Mzc2NCA0LjE4OTEyIDguNjg5NjQgMy45MzcyNyA5IDMuOTM3MDFaTTEuNTE4NTUgOC4yMjcwNUMxLjgyOTAxIDguMjM1NjIgMi4wNzM4NyA4LjQ5Mzc3IDIuMDY1NDMgOC44MDQyQzIuMDYzNjQgOC44Njg5OSAyLjA2MjUgOC45MzQyNiAyLjA2MjUgOC45OTk1MUMyLjA2MjUgOS4wNjQ3NCAyLjA2MzY1IDkuMTMwMDYgMi4wNjU0MyA5LjE5NDgyQzIuMDc0IDkuNTA1MzcgMS44MjkxIDkuNzY0MzcgMS41MTg1NSA5Ljc3Mjk1QzEuMjA4MSA5Ljc4MTQxIDAuOTQ5OTc5IDkuNTM2NTUgMC45NDE0MDYgOS4yMjYwN0MwLjkzOTMzMiA5LjE1MDkgMC45Mzc1IDkuMDc1MTYgMC45Mzc1IDguOTk5NTFDMC45Mzc1MDMgOC45MjM5MSAwLjkzOTMzMiA4Ljg0ODA4IDAuOTQxNDA2IDguNzcyOTVDMC45NTAyMjEgOC40NjI2OSAxLjIwODI1IDguMjE4NTkgMS41MTg1NSA4LjIyNzA1Wk05IDAuOTM3MDEyQzEzLjQ1MjcgMC45MzcwMTIgMTcuMDYyMyA0LjU0Njg3IDE3LjA2MjUgOC45OTk1MUMxNy4wNjI1IDkuMDc1MTYgMTcuMDYxNiA5LjE1MDkgMTcuMDU5NiA5LjIyNjA3QzE3LjA1MSA5LjUzNjYyIDE2Ljc5MiA5Ljc4MTUyIDE2LjQ4MTQgOS43NzI5NUMxNi4xNzExIDkuNzY0MTQgMTUuOTI3IDkuNTA1MjIgMTUuOTM1NSA5LjE5NDgyQzE1LjkzNzMgOS4xMzAwNiAxNS45Mzc1IDkuMDY0NzMgMTUuOTM3NSA4Ljk5OTUxQzE1LjkzNzMgNS4xNjgxOSAxMi44MzE0IDIuMDYyMDEgOSAyLjA2MjAxQzguOTM0NzUgMi4wNjIwMSA4Ljg2OTQ4IDIuMDYzMTUgOC44MDQ2OSAyLjA2NDk0QzguNDk0MjYgMi4wNzMzOCA4LjIzNjExIDEuODI4NTMgOC4yMjc1NCAxLjUxODA3QzguMjE5MDggMS4yMDc3NiA4LjQ2MzE4IDAuOTQ5NzMzIDguNzczNDQgMC45NDA5MThDOC44NDg1NyAwLjkzODg0MyA4LjkyNDQgMC45MzcwMTUgOSAwLjkzNzAxMlpNMS42Mzk2NSA1LjcwNTU3QzEuNzY2NzMgNS40MjIxNiAyLjA5OTM2IDUuMjk1MzQgMi4zODI4MSA1LjQyMjM2QzIuNjY2MjYgNS41NDk0IDIuNzkyOTcgNS44ODIwNiAyLjY2NjAyIDYuMTY1NTNDMi42MTMxIDYuMjgzNiAyLjU2Mjk5IDYuNDAzNDYgMi41MTY2IDYuNTI0OUMyLjQwNTc2IDYuODE1MDIgMi4wODExNiA2Ljk2MDggMS43OTEwMiA2Ljg1MDFDMS41MDA4MiA2LjczOTI1IDEuMzU0OTkgNi40MTM3NCAxLjQ2NTgyIDYuMTIzNTRDMS41MTk3OSA1Ljk4MjI0IDEuNTc4MSA1Ljg0MjkgMS42Mzk2NSA1LjcwNTU3Wk0zLjQ2MDk0IDMuMTQxMTFDMy42ODY2NSAyLjkyNzY1IDQuMDQzMzcgMi45Mzc4NyA0LjI1Njg0IDMuMTYzNTdDNC40NzAwMiAzLjM4OTI5IDQuNDU5OTYgMy43NDUxMiA0LjIzNDM4IDMuOTU4NUM0LjE0MDA2IDQuMDQ3NjkgNC4wNDgxOCA0LjEzOTU3IDMuOTU4OTggNC4yMzM4OUMzLjc0NTYgNC40NTk0NyAzLjM4OTc3IDQuNDY5NTQgMy4xNjQwNiA0LjI1NjM1QzIuOTM4MzUgNC4wNDI4OSAyLjkyODE0IDMuNjg2MTYgMy4xNDE2IDMuNDYwNDVDMy4yNDUwNiAzLjM1MTA3IDMuMzUxNTUgMy4yNDQ1NyAzLjQ2MDk0IDMuMTQxMTFaTTYuMTI0MDIgMS40NjUzM0M2LjQxNDIzIDEuMzU0NTEgNi43Mzk3NCAxLjUwMDMzIDYuODUwNTkgMS43OTA1M0M2Ljk2MTI5IDIuMDgwNjcgNi44MTU1MSAyLjQwNTI3IDYuNTI1MzkgMi41MTYxMUM2LjQwMzk1IDIuNTYyNSA2LjI4NDA5IDIuNjEyNjEgNi4xNjYwMiAyLjY2NTUzQzUuODgyNTUgMi43OTI0OCA1LjU0OTg4IDIuNjY1NzcgNS40MjI4NSAyLjM4MjMyQzUuMjk1ODMgMi4wOTg4NyA1LjQyMjY1IDEuNzY2MjUgNS43MDYwNSAxLjYzOTE2QzUuODQzMzkgMS41Nzc2MSA1Ljk4MjczIDEuNTE5MyA2LjEyNDAyIDEuNDY1MzNaIiBmaWxsPSIjRkU2NjAwIi8+Cjwvc3ZnPgo=" alt="" aria-hidden="true">
+            <span>Tempo: 6 min</span>
+          </div>
+          <h2 class="hero__title">Sindrome di Tourette: sintomi, cause e trattamento della "malattia dei tic"</h2>
+        </div>
+        <div class="hero__body-text">
+          <p class="hero__excerpt">È caratterizzata da tic motori e vocali e si manifesta nell'infanzia con un andamento variabile nel tempo.</p>
+          <div class="hero__author">
+            <span class="hero__author-name">Francesca Cucinotta</span>
+            <span class="hero__author-role">neuropsichiatra infantile</span>
+          </div>
+        </div>
+        <a href="#" class="hero__cta">
+          Leggi l'articolo
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+      <div class="hero__content">
+        <div class="hero__titles">
+          <div class="hero__meta">
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTkuMTk1MzEgMTUuOTM1MUM5LjUwNTcgMTUuOTI2NSA5Ljc2NDYzIDE2LjE3MDYgOS43NzM0NCAxNi40ODFDOS43ODIwMSAxNi43OTE1IDkuNTM3MSAxNy4wNTA1IDkuMjI2NTYgMTcuMDU5MUM5LjE1MTM5IDE3LjA2MTIgOS4wNzU2NSAxNy4wNjIgOSAxNy4wNjJDOC45MjQ0IDE3LjA2MiA4Ljg0ODU3IDE3LjA2MTIgOC43NzM0NCAxNy4wNTkxQzguNDYzMTEgMTcuMDUwMyA4LjIxODk3IDE2Ljc5MTMgOC4yMjc1NCAxNi40ODFDOC4yMzYzNSAxNi4xNzA3IDguNDk0NCAxNS45MjY2IDguODA0NjkgMTUuOTM1MUM4Ljg2OTQ4IDE1LjkzNjggOC45MzQ3NSAxNS45MzcgOSAxNS45MzdDOS4wNjUyMiAxNS45MzcgOS4xMzA1NSAxNS45MzY4IDkuMTk1MzEgMTUuOTM1MVpNNS40MjI4NSAxNS42MTc3QzUuNTQ5OSAxNS4zMzQyIDUuODgyNTMgMTUuMjA3NCA2LjE2NjAyIDE1LjMzNDVDNi4yODQwMyAxNS4zODc0IDYuNDA0MDEgMTUuNDM2NSA2LjUyNTM5IDE1LjQ4MjlDNi44MTU2IDE1LjU5MzggNi45NjE0NCAxNS45MTkzIDYuODUwNTkgMTYuMjA5NUM2LjczOTcgMTYuNDk5NiA2LjQxNDIxIDE2LjY0NDUgNi4xMjQwMiAxNi41MzM3QzUuOTgyOCAxNi40Nzk3IDUuODQzMzIgMTYuNDIyNCA1LjcwNjA1IDE2LjM2MDhDNS40MjI2NiAxNi4yMzM4IDUuMjk2MDIgMTUuOTAxMSA1LjQyMjg1IDE1LjYxNzdaTTExLjgzNCAxNS4zMzQ1QzEyLjExNzUgMTUuMjA3NCAxMi40NTExIDE1LjMzNDIgMTIuNTc4MSAxNS42MTc3QzEyLjcwNDggMTUuOTAxIDEyLjU3ODEgMTYuMjMzOCAxMi4yOTQ5IDE2LjM2MDhDMTIuMTU3NyAxNi40MjIzIDEyLjAxODEgMTYuNDc5OCAxMS44NzcgMTYuNTMzN0MxMS41ODY4IDE2LjY0NDUgMTEuMjYxMyAxNi40OTk2IDExLjE1MDQgMTYuMjA5NUMxMS4wMzk1IDE1LjkxOTMgMTEuMTg1NCAxNS41OTM4IDExLjQ3NTYgMTUuNDgyOUMxMS41OTY3IDE1LjQzNjYgMTEuNzE2MiAxNS4zODcyIDExLjgzNCAxNS4zMzQ1Wk0zLjE2NDA2IDEzLjc0MzdDMy4zODk3OCAxMy41MzAzIDMuNzQ1NTYgMTMuNTQwNCAzLjk1ODk4IDEzLjc2NjFDNC4wNDgxNCAxMy44NjA0IDQuMTQwMTEgMTMuOTUyMyA0LjIzNDM4IDE0LjA0MTVDNC40NTk4NiAxNC4yNTUgNC40NzAxNCAxNC42MTA4IDQuMjU2ODQgMTQuODM2NEM0LjA0MzM3IDE1LjA2MjEgMy42ODY2NSAxNS4wNzIzIDMuNDYwOTQgMTQuODU4OUMzLjM1MTQ0IDE0Ljc1NTMgMy4yNDUxNiAxNC42NDgxIDMuMTQxNiAxNC41Mzg2QzIuOTI4MyAxNC4zMTI5IDIuOTM4NDEgMTMuOTU3MSAzLjE2NDA2IDEzLjc0MzdaTTE0LjA0MiAxMy43NjYxQzE0LjI1NTUgMTMuNTQwNCAxNC42MTEyIDEzLjUzMDIgMTQuODM2OSAxMy43NDM3QzE1LjA2MjUgMTMuOTU3IDE1LjA3MjUgMTQuMzEyOSAxNC44NTk0IDE0LjUzODZDMTQuNzU1OCAxNC42NDgxIDE0LjY0ODYgMTQuNzU1MyAxNC41MzkxIDE0Ljg1ODlDMTQuMzEzNCAxNS4wNzIgMTMuOTU3NSAxNS4wNjIgMTMuNzQ0MSAxNC44MzY0QzEzLjUzMDcgMTQuNjEwNyAxMy41NDA5IDE0LjI1NSAxMy43NjY2IDE0LjA0MTVDMTMuODYwOSAxMy45NTIzIDEzLjk1MjggMTMuODYwNCAxNC4wNDIgMTMuNzY2MVpNMS43OTEwMiAxMS4xNDk5QzIuMDgxMiAxMS4wMzkxIDIuNDA1NzYgMTEuMTg0OSAyLjUxNjYgMTEuNDc1MUMyLjU2MjkxIDExLjU5NjMgMi42MTMyIDExLjcxNTYgMi42NjYwMiAxMS44MzM1QzIuNzkzMDcgMTIuMTE3IDIuNjY2MyAxMi40NTA2IDIuMzgyODEgMTIuNTc3NkMyLjA5OTQ4IDEyLjcwNDUgMS43NjY4MSAxMi41Nzc2IDEuNjM5NjUgMTIuMjk0NEMxLjU3ODE0IDEyLjE1NzIgMS41MTk3NiAxMi4wMTc3IDEuNDY1ODIgMTEuODc2NUMxLjM1NDk3IDExLjU4NjMgMS41MDA4MSAxMS4yNjA4IDEuNzkxMDIgMTEuMTQ5OVpNMTUuNDgzNCAxMS40NzUxQzE1LjU5NDIgMTEuMTg0OSAxNS45MTk4IDExLjAzOTEgMTYuMjEgMTEuMTQ5OUMxNi41IDExLjI2MDggMTYuNjQ1IDExLjU4NjMgMTYuNTM0MiAxMS44NzY1QzE2LjQ4MDMgMTIuMDE3NiAxNi40MjI4IDEyLjE1NzMgMTYuMzYxMyAxMi4yOTQ0QzE2LjIzNDMgMTIuNTc3NiAxNS45MDE1IDEyLjcwNDMgMTUuNjE4MiAxMi41Nzc2QzE1LjMzNDcgMTIuNDUwNiAxNS4yMDc5IDEyLjExNyAxNS4zMzUgMTEuODMzNUMxNS4zODc3IDExLjcxNTcgMTUuNDM3MSAxMS41OTYyIDE1LjQ4MzQgMTEuNDc1MVpNOSAzLjkzNzAxQzkuMzEwNTggMy45MzcwMSA5LjU2MjM2IDQuMTg4OTcgOS41NjI1IDQuNDk5NTFWNy42MDg4OUM5LjkzODQ2IDcuNzYxMDcgMTAuMjM5NCA4LjA2MTA3IDEwLjM5MTYgOC40MzcwMUgxMkMxMi4zMTA2IDguNDM3MDEgMTIuNTYyNCA4LjY4ODk3IDEyLjU2MjUgOC45OTk1MUMxMi41NjI1IDkuMzEwMTcgMTIuMzEwNyA5LjU2MjAxIDEyIDkuNTYyMDFIMTAuMzkxNkMxMC4xNjkxIDEwLjExMTcgOS42Mjk1MSAxMC40OTk1IDkgMTAuNDk5NUM4LjE3MTc5IDEwLjQ5OTMgNy41IDkuODI3NzggNy41IDguOTk5NTFDNy41MDAxIDguMzcwMjggNy44ODgwOSA3LjgzMTQ5IDguNDM3NSA3LjYwODg5VjQuNDk5NTFDOC40Mzc2NCA0LjE4OTEyIDguNjg5NjQgMy45MzcyNyA5IDMuOTM3MDFaTTEuNTE4NTUgOC4yMjcwNUMxLjgyOTAxIDguMjM1NjIgMi4wNzM4NyA4LjQ5Mzc3IDIuMDY1NDMgOC44MDQyQzIuMDYzNjQgOC44Njg5OSAyLjA2MjUgOC45MzQyNiAyLjA2MjUgOC45OTk1MUMyLjA2MjUgOS4wNjQ3NCAyLjA2MzY1IDkuMTMwMDYgMi4wNjU0MyA5LjE5NDgyQzIuMDc0IDkuNTA1MzcgMS44MjkxIDkuNzY0MzcgMS41MTg1NSA5Ljc3Mjk1QzEuMjA4MSA5Ljc4MTQxIDAuOTQ5OTc5IDkuNTM2NTUgMC45NDE0MDYgOS4yMjYwN0MwLjkzOTMzMiA5LjE1MDkgMC45Mzc1IDkuMDc1MTYgMC45Mzc1IDguOTk5NTFDMC45Mzc1MDMgOC45MjM5MSAwLjkzOTMzMiA4Ljg0ODA4IDAuOTQxNDA2IDguNzcyOTVDMC45NTAyMjEgOC40NjI2OSAxLjIwODI1IDguMjE4NTkgMS41MTg1NSA4LjIyNzA1Wk05IDAuOTM3MDEyQzEzLjQ1MjcgMC45MzcwMTIgMTcuMDYyMyA0LjU0Njg3IDE3LjA2MjUgOC45OTk1MUMxNy4wNjI1IDkuMDc1MTYgMTcuMDYxNiA5LjE1MDkgMTcuMDU5NiA5LjIyNjA3QzE3LjA1MSA5LjUzNjYyIDE2Ljc5MiA5Ljc4MTUyIDE2LjQ4MTQgOS43NzI5NUMxNi4xNzExIDkuNzY0MTQgMTUuOTI3IDkuNTA1MjIgMTUuOTM1NSA5LjE5NDgyQzE1LjkzNzMgOS4xMzAwNiAxNS45Mzc1IDkuMDY0NzMgMTUuOTM3NSA4Ljk5OTUxQzE1LjkzNzMgNS4xNjgxOSAxMi44MzE0IDIuMDYyMDEgOSAyLjA2MjAxQzguOTM0NzUgMi4wNjIwMSA4Ljg2OTQ4IDIuMDYzMTUgOC44MDQ2OSAyLjA2NDk0QzguNDk0MjYgMi4wNzMzOCA4LjIzNjExIDEuODI4NTMgOC4yMjc1NCAxLjUxODA3QzguMjE5MDggMS4yMDc3NiA4LjQ2MzE4IDAuOTQ5NzMzIDguNzczNDQgMC45NDA5MThDOC44NDg1NyAwLjkzODg0MyA4LjkyNDQgMC45MzcwMTUgOSAwLjkzNzAxMlpNMS42Mzk2NSA1LjcwNTU3QzEuNzY2NzMgNS40MjIxNiAyLjA5OTM2IDUuMjk1MzQgMi4zODI4MSA1LjQyMjM2QzIuNjY2MjYgNS41NDk0IDIuNzkyOTcgNS44ODIwNiAyLjY2NjAyIDYuMTY1NTNDMi42MTMxIDYuMjgzNiAyLjU2Mjk5IDYuNDAzNDYgMi41MTY2IDYuNTI0OUMyLjQwNTc2IDYuODE1MDIgMi4wODExNiA2Ljk2MDggMS43OTEwMiA2Ljg1MDFDMS41MDA4MiA2LjczOTI1IDEuMzU0OTkgNi40MTM3NCAxLjQ2NTgyIDYuMTIzNTRDMS41MTk3OSA1Ljk4MjI0IDEuNTc4MSA1Ljg0MjkgMS42Mzk2NSA1LjcwNTU3Wk0zLjQ2MDk0IDMuMTQxMTFDMy42ODY2NSAyLjkyNzY1IDQuMDQzMzcgMi45Mzc4NyA0LjI1Njg0IDMuMTYzNTdDNC40NzAwMiAzLjM4OTI5IDQuNDU5OTYgMy43NDUxMiA0LjIzNDM4IDMuOTU4NUM0LjE0MDA2IDQuMDQ3NjkgNC4wNDgxOCA0LjEzOTU3IDMuOTU4OTggNC4yMzM4OUMzLjc0NTYgNC40NTk0NyAzLjM4OTc3IDQuNDY5NTQgMy4xNjQwNiA0LjI1NjM1QzIuOTM4MzUgNC4wNDI4OSAyLjkyODE0IDMuNjg2MTYgMy4xNDE2IDMuNDYwNDVDMy4yNDUwNiAzLjM1MTA3IDMuMzUxNTUgMy4yNDQ1NyAzLjQ2MDk0IDMuMTQxMTFaTTYuMTI0MDIgMS40NjUzM0M2LjQxNDIzIDEuMzU0NTEgNi43Mzk3NCAxLjUwMDMzIDYuODUwNTkgMS43OTA1M0M2Ljk2MTI5IDIuMDgwNjcgNi44MTU1MSAyLjQwNTI3IDYuNTI1MzkgMi41MTYxMUM2LjQwMzk1IDIuNTYyNSA2LjI4NDA5IDIuNjEyNjEgNi4xNjYwMiAyLjY2NTUzQzUuODgyNTUgMi43OTI0OCA1LjU0OTg4IDIuNjY1NzcgNS40MjI4NSAyLjM4MjMyQzUuMjk1ODMgMi4wOTg4NyA1LjQyMjY1IDEuNzY2MjUgNS43MDYwNSAxLjYzOTE2QzUuODQzMzkgMS41Nzc2MSA1Ljk4MjczIDEuNTE5MyA2LjEyNDAyIDEuNDY1MzNaIiBmaWxsPSIjRkU2NjAwIi8+Cjwvc3ZnPgo=" alt="" aria-hidden="true">
+            <span>Tempo: 8 min</span>
+          </div>
+          <h2 class="hero__title">Febbre nei bambini: quando preoccuparsi e come gestirla a casa</h2>
+        </div>
+        <div class="hero__body-text">
+          <p class="hero__excerpt">La febbre è una risposta naturale del sistema immunitario, ma sapere quando intervenire fa la differenza.</p>
+          <div class="hero__author">
+            <span class="hero__author-name">Maria Grazia Ronchi</span>
+            <span class="hero__author-role">pediatra di libera scelta</span>
+          </div>
+        </div>
+        <a href="#" class="hero__cta">
+          Leggi l'articolo
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+      <div class="hero__content">
+        <div class="hero__titles">
+          <div class="hero__meta">
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTkuMTk1MzEgMTUuOTM1MUM5LjUwNTcgMTUuOTI2NSA5Ljc2NDYzIDE2LjE3MDYgOS43NzM0NCAxNi40ODFDOS43ODIwMSAxNi43OTE1IDkuNTM3MSAxNy4wNTA1IDkuMjI2NTYgMTcuMDU5MUM5LjE1MTM5IDE3LjA2MTIgOS4wNzU2NSAxNy4wNjIgOSAxNy4wNjJDOC45MjQ0IDE3LjA2MiA4Ljg0ODU3IDE3LjA2MTIgOC43NzM0NCAxNy4wNTkxQzguNDYzMTEgMTcuMDUwMyA4LjIxODk3IDE2Ljc5MTMgOC4yMjc1NCAxNi40ODFDOC4yMzYzNSAxNi4xNzA3IDguNDk0NCAxNS45MjY2IDguODA0NjkgMTUuOTM1MUM4Ljg2OTQ4IDE1LjkzNjggOC45MzQ3NSAxNS45MzcgOSAxNS45MzdDOS4wNjUyMiAxNS45MzcgOS4xMzA1NSAxNS45MzY4IDkuMTk1MzEgMTUuOTM1MVpNNS40MjI4NSAxNS42MTc3QzUuNTQ5OSAxNS4zMzQyIDUuODgyNTMgMTUuMjA3NCA2LjE2NjAyIDE1LjMzNDVDNi4yODQwMyAxNS4zODc0IDYuNDA0MDEgMTUuNDM2NSA2LjUyNTM5IDE1LjQ4MjlDNi44MTU2IDE1LjU5MzggNi45NjE0NCAxNS45MTkzIDYuODUwNTkgMTYuMjA5NUM2LjczOTcgMTYuNDk5NiA2LjQxNDIxIDE2LjY0NDUgNi4xMjQwMiAxNi41MzM3QzUuOTgyOCAxNi40Nzk3IDUuODQzMzIgMTYuNDIyNCA1LjcwNjA1IDE2LjM2MDhDNS40MjI2NiAxNi4yMzM4IDUuMjk2MDIgMTUuOTAxMSA1LjQyMjg1IDE1LjYxNzdaTTExLjgzNCAxNS4zMzQ1QzEyLjExNzUgMTUuMjA3NCAxMi40NTExIDE1LjMzNDIgMTIuNTc4MSAxNS42MTc3QzEyLjcwNDggMTUuOTAxIDEyLjU3ODEgMTYuMjMzOCAxMi4yOTQ5IDE2LjM2MDhDMTIuMTU3NyAxNi40MjIzIDEyLjAxODEgMTYuNDc5OCAxMS44NzcgMTYuNTMzN0MxMS41ODY4IDE2LjY0NDUgMTEuMjYxMyAxNi40OTk2IDExLjE1MDQgMTYuMjA5NUMxMS4wMzk1IDE1LjkxOTMgMTEuMTg1NCAxNS41OTM4IDExLjQ3NTYgMTUuNDgyOUMxMS41OTY3IDE1LjQzNjYgMTEuNzE2MiAxNS4zODcyIDExLjgzNCAxNS4zMzQ1Wk0zLjE2NDA2IDEzLjc0MzdDMy4zODk3OCAxMy41MzAzIDMuNzQ1NTYgMTMuNTQwNCAzLjk1ODk4IDEzLjc2NjFDNC4wNDgxNCAxMy44NjA0IDQuMTQwMTEgMTMuOTUyMyA0LjIzNDM4IDE0LjA0MTVDNC40NTk4NiAxNC4yNTUgNC40NzAxNCAxNC42MTA4IDQuMjU2ODQgMTQuODM2NEM0LjA0MzM3IDE1LjA2MjEgMy42ODY2NSAxNS4wNzIzIDMuNDYwOTQgMTQuODU4OUMzLjM1MTQ0IDE0Ljc1NTMgMy4yNDUxNiAxNC42NDgxIDMuMTQxNiAxNC41Mzg2QzIuOTI4MyAxNC4zMTI5IDIuOTM4NDEgMTMuOTU3MSAzLjE2NDA2IDEzLjc0MzdaTTE0LjA0MiAxMy43NjYxQzE0LjI1NTUgMTMuNTQwNCAxNC42MTEyIDEzLjUzMDIgMTQuODM2OSAxMy43NDM3QzE1LjA2MjUgMTMuOTU3IDE1LjA3MjUgMTQuMzEyOSAxNC44NTk0IDE0LjUzODZDMTQuNzU1OCAxNC42NDgxIDE0LjY0ODYgMTQuNzU1MyAxNC41MzkxIDE0Ljg1ODlDMTQuMzEzNCAxNS4wNzIgMTMuOTU3NSAxNS4wNjIgMTMuNzQ0MSAxNC44MzY0QzEzLjUzMDcgMTQuNjEwNyAxMy41NDA5IDE0LjI1NSAxMy43NjY2IDE0LjA0MTVDMTMuODYwOSAxMy45NTIzIDEzLjk1MjggMTMuODYwNCAxNC4wNDIgMTMuNzY2MVpNMS43OTEwMiAxMS4xNDk5QzIuMDgxMiAxMS4wMzkxIDIuNDA1NzYgMTEuMTg0OSAyLjUxNjYgMTEuNDc1MUMyLjU2MjkxIDExLjU5NjMgMi42MTMyIDExLjcxNTYgMi42NjYwMiAxMS44MzM1QzIuNzkzMDcgMTIuMTE3IDIuNjY2MyAxMi40NTA2IDIuMzgyODEgMTIuNTc3NkMyLjA5OTQ4IDEyLjcwNDUgMS43NjY4MSAxMi41Nzc2IDEuNjM5NjUgMTIuMjk0NEMxLjU3ODE0IDEyLjE1NzIgMS41MTk3NiAxMi4wMTc3IDEuNDY1ODIgMTEuODc2NUMxLjM1NDk3IDExLjU4NjMgMS41MDA4MSAxMS4yNjA4IDEuNzkxMDIgMTEuMTQ5OVpNMTUuNDgzNCAxMS40NzUxQzE1LjU5NDIgMTEuMTg0OSAxNS45MTk4IDExLjAzOTEgMTYuMjEgMTEuMTQ5OUMxNi41IDExLjI2MDggMTYuNjQ1IDExLjU4NjMgMTYuNTM0MiAxMS44NzY1QzE2LjQ4MDMgMTIuMDE3NiAxNi40MjI4IDEyLjE1NzMgMTYuMzYxMyAxMi4yOTQ0QzE2LjIzNDMgMTIuNTc3NiAxNS45MDE1IDEyLjcwNDMgMTUuNjE4MiAxMi41Nzc2QzE1LjMzNDcgMTIuNDUwNiAxNS4yMDc5IDEyLjExNyAxNS4zMzUgMTEuODMzNUMxNS4zODc3IDExLjcxNTcgMTUuNDM3MSAxMS41OTYyIDE1LjQ4MzQgMTEuNDc1MVpNOSAzLjkzNzAxQzkuMzEwNTggMy45MzcwMSA5LjU2MjM2IDQuMTg4OTcgOS41NjI1IDQuNDk5NTFWNy42MDg4OUM5LjkzODQ2IDcuNzYxMDcgMTAuMjM5NCA4LjA2MTA3IDEwLjM5MTYgOC40MzcwMUgxMkMxMi4zMTA2IDguNDM3MDEgMTIuNTYyNCA4LjY4ODk3IDEyLjU2MjUgOC45OTk1MUMxMi41NjI1IDkuMzEwMTcgMTIuMzEwNyA5LjU2MjAxIDEyIDkuNTYyMDFIMTAuMzkxNkMxMC4xNjkxIDEwLjExMTcgOS42Mjk1MSAxMC40OTk1IDkgMTAuNDk5NUM4LjE3MTc5IDEwLjQ5OTMgNy41IDkuODI3NzggNy41IDguOTk5NTFDNy41MDAxIDguMzcwMjggNy44ODgwOSA3LjgzMTQ5IDguNDM3NSA3LjYwODg5VjQuNDk5NTFDOC40Mzc2NCA0LjE4OTEyIDguNjg5NjQgMy45MzcyNyA5IDMuOTM3MDFaTTEuNTE4NTUgOC4yMjcwNUMxLjgyOTAxIDguMjM1NjIgMi4wNzM4NyA4LjQ5Mzc3IDIuMDY1NDMgOC44MDQyQzIuMDYzNjQgOC44Njg5OSAyLjA2MjUgOC45MzQyNiAyLjA2MjUgOC45OTk1MUMyLjA2MjUgOS4wNjQ3NCAyLjA2MzY1IDkuMTMwMDYgMi4wNjU0MyA5LjE5NDgyQzIuMDc0IDkuNTA1MzcgMS44MjkxIDkuNzY0MzcgMS41MTg1NSA5Ljc3Mjk1QzEuMjA4MSA5Ljc4MTQxIDAuOTQ5OTc5IDkuNTM2NTUgMC45NDE0MDYgOS4yMjYwN0MwLjkzOTMzMiA5LjE1MDkgMC45Mzc1IDkuMDc1MTYgMC45Mzc1IDguOTk5NTFDMC45Mzc1MDMgOC45MjM5MSAwLjkzOTMzMiA4Ljg0ODA4IDAuOTQxNDA2IDguNzcyOTVDMC45NTAyMjEgOC40NjI2OSAxLjIwODI1IDguMjE4NTkgMS41MTg1NSA4LjIyNzA1Wk05IDAuOTM3MDEyQzEzLjQ1MjcgMC45MzcwMTIgMTcuMDYyMyA0LjU0Njg3IDE3LjA2MjUgOC45OTk1MUMxNy4wNjI1IDkuMDc1MTYgMTcuMDYxNiA5LjE1MDkgMTcuMDU5NiA5LjIyNjA3QzE3LjA1MSA5LjUzNjYyIDE2Ljc5MiA5Ljc4MTUyIDE2LjQ4MTQgOS43NzI5NUMxNi4xNzExIDkuNzY0MTQgMTUuOTI3IDkuNTA1MjIgMTUuOTM1NSA5LjE5NDgyQzE1LjkzNzMgOS4xMzAwNiAxNS45Mzc1IDkuMDY0NzMgMTUuOTM3NSA4Ljk5OTUxQzE1LjkzNzMgNS4xNjgxOSAxMi44MzE0IDIuMDYyMDEgOSAyLjA2MjAxQzguOTM0NzUgMi4wNjIwMSA4Ljg2OTQ4IDIuMDYzMTUgOC44MDQ2OSAyLjA2NDk0QzguNDk0MjYgMi4wNzMzOCA4LjIzNjExIDEuODI4NTMgOC4yMjc1NCAxLjUxODA3QzguMjE5MDggMS4yMDc3NiA4LjQ2MzE4IDAuOTQ5NzMzIDguNzczNDQgMC45NDA5MThDOC44NDg1NyAwLjkzODg0MyA4LjkyNDQgMC45MzcwMTUgOSAwLjkzNzAxMlpNMS42Mzk2NSA1LjcwNTU3QzEuNzY2NzMgNS40MjIxNiAyLjA5OTM2IDUuMjk1MzQgMi4zODI4MSA1LjQyMjM2QzIuNjY2MjYgNS41NDk0IDIuNzkyOTcgNS44ODIwNiAyLjY2NjAyIDYuMTY1NTNDMi42MTMxIDYuMjgzNiAyLjU2Mjk5IDYuNDAzNDYgMi41MTY2IDYuNTI0OUMyLjQwNTc2IDYuODE1MDIgMi4wODExNiA2Ljk2MDggMS43OTEwMiA2Ljg1MDFDMS41MDA4MiA2LjczOTI1IDEuMzU0OTkgNi40MTM3NCAxLjQ2NTgyIDYuMTIzNTRDMS41MTk3OSA1Ljk4MjI0IDEuNTc4MSA1Ljg0MjkgMS42Mzk2NSA1LjcwNTU3Wk0zLjQ2MDk0IDMuMTQxMTFDMy42ODY2NSAyLjkyNzY1IDQuMDQzMzcgMi45Mzc4NyA0LjI1Njg0IDMuMTYzNTdDNC40NzAwMiAzLjM4OTI5IDQuNDU5OTYgMy43NDUxMiA0LjIzNDM4IDMuOTU4NUM0LjE0MDA2IDQuMDQ3NjkgNC4wNDgxOCA0LjEzOTU3IDMuOTU4OTggNC4yMzM4OUMzLjc0NTYgNC40NTk0NyAzLjM4OTc3IDQuNDY5NTQgMy4xNjQwNiA0LjI1NjM1QzIuOTM4MzUgNC4wNDI4OSAyLjkyODE0IDMuNjg2MTYgMy4xNDE2IDMuNDYwNDVDMy4yNDUwNiAzLjM1MTA3IDMuMzUxNTUgMy4yNDQ1NyAzLjQ2MDk0IDMuMTQxMTFaTTYuMTI0MDIgMS40NjUzM0M2LjQxNDIzIDEuMzU0NTEgNi43Mzk3NCAxLjUwMDMzIDYuODUwNTkgMS43OTA1M0M2Ljk2MTI5IDIuMDgwNjcgNi44MTU1MSAyLjQwNTI3IDYuNTI1MzkgMi41MTYxMUM2LjQwMzk1IDIuNTYyNSA2LjI4NDA5IDIuNjEyNjEgNi4xNjYwMiAyLjY2NTUzQzUuODgyNTUgMi43OTI0OCA1LjU0OTg4IDIuNjY1NzcgNS40MjI4NSAyLjM4MjMyQzUuMjk1ODMgMi4wOTg4NyA1LjQyMjY1IDEuNzY2MjUgNS43MDYwNSAxLjYzOTE2QzUuODQzMzkgMS41Nzc2MSA1Ljk4MjczIDEuNTE5MyA2LjEyNDAyIDEuNDY1MzNaIiBmaWxsPSIjRkU2NjAwIi8+Cjwvc3ZnPgo=" alt="" aria-hidden="true">
+            <span>Tempo: 5 min</span>
+          </div>
+          <h2 class="hero__title">Gioco simbolico: come stimolare la fantasia del tuo bambino dai 2 anni</h2>
+        </div>
+        <div class="hero__body-text">
+          <p class="hero__excerpt">Fingere di cucinare, prendersi cura di una bambola, costruire mondi immaginari: il gioco simbolico è un pilastro dello sviluppo cognitivo.</p>
+          <div class="hero__author">
+            <span class="hero__author-name">Luca Bernardi</span>
+            <span class="hero__author-role">psicologo dell'età evolutiva</span>
+          </div>
+        </div>
+        <a href="#" class="hero__cta">
+          Leggi l'articolo
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+    </div><!-- /hero__content-wrap -->
+
+    <!-- Dot bottom: visibili e cliccabili -->
+    <div class="hero__dots-bottom" role="tablist" aria-label="Articoli in evidenza">
+      <button class="hero__dot is-active" role="tab" aria-selected="true"  aria-label="Articolo 1" data-slide="0"></button>
+      <button class="hero__dot"           role="tab" aria-selected="false" aria-label="Articolo 2" data-slide="1"></button>
+      <button class="hero__dot"           role="tab" aria-selected="false" aria-label="Articolo 3" data-slide="2"></button>
+    </div>
+
+  </div><!-- /hero__body -->
+  </div><!-- /hero__container -->
+</section>
+
+
+<!-- ══════════════════════════════════════
+     ULTIMI ARTICOLI
+══════════════════════════════════════ -->
+<section class="articles">
+  <div class="articles__header">
+    <div class="articles__title-wrap">
+      <h2 class="articles__title">Ultimi articoli</h2>
+    </div>
+    <a href="#" class="articles__see-all">
+      Vedi tutti
+      <span class="articles__see-all-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </span>
+    </a>
+  </div>
+
+  <!-- Riga 1: 2 card grandi -->
+  <div class="articles__grid-2">
+    <article class="article-card article-card--featured">
+      <div class="article-card__img">
+        <img src="https://www.figma.com/api/mcp/asset/5c1869c1-474a-4875-bc20-21d6dc5dac85" alt="Sepsi">
+        <span class="article-card__tag-img">Medicina</span>
+      </div>
+      <div class="article-card__body">
+        <p class="article-card__rubrica">Malattie e disturbi</p>
+        <h3 class="article-card__title article-card--featured">Sepsi: cos'è, cause, sintomi e trattamento</h3>
+        <p class="article-card__excerpt">Nei neonati è rara ma particolarmente pericolosa. Riconoscere i sintomi precoci e intervenire tempestivamente è fondamentale per ridurre le complicanze.</p>
+        <div class="article-card__meta">
+          <span class="article-card__time">
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTkuMTk1MzEgMTUuOTM1MUM5LjUwNTcgMTUuOTI2NSA5Ljc2NDYzIDE2LjE3MDYgOS43NzM0NCAxNi40ODFDOS43ODIwMSAxNi43OTE1IDkuNTM3MSAxNy4wNTA1IDkuMjI2NTYgMTcuMDU5MUM5LjE1MTM5IDE3LjA2MTIgOS4wNzU2NSAxNy4wNjIgOSAxNy4wNjJDOC45MjQ0IDE3LjA2MiA4Ljg0ODU3IDE3LjA2MTIgOC43NzM0NCAxNy4wNTkxQzguNDYzMTEgMTcuMDUwMyA4LjIxODk3IDE2Ljc5MTMgOC4yMjc1NCAxNi40ODFDOC4yMzYzNSAxNi4xNzA3IDguNDk0NCAxNS45MjY2IDguODA0NjkgMTUuOTM1MUM4Ljg2OTQ4IDE1LjkzNjggOC45MzQ3NSAxNS45MzcgOSAxNS45MzdDOS4wNjUyMiAxNS45MzcgOS4xMzA1NSAxNS45MzY4IDkuMTk1MzEgMTUuOTM1MVpNNS40MjI4NSAxNS42MTc3QzUuNTQ5OSAxNS4zMzQyIDUuODgyNTMgMTUuMjA3NCA2LjE2NjAyIDE1LjMzNDVDNi4yODQwMyAxNS4zODc0IDYuNDA0MDEgMTUuNDM2NSA2LjUyNTM5IDE1LjQ4MjlDNi44MTU2IDE1LjU5MzggNi45NjE0NCAxNS45MTkzIDYuODUwNTkgMTYuMjA5NUM2LjczOTcgMTYuNDk5NiA2LjQxNDIxIDE2LjY0NDUgNi4xMjQwMiAxNi41MzM3QzUuOTgyOCAxNi40Nzk3IDUuODQzMzIgMTYuNDIyNCA1LjcwNjA1IDE2LjM2MDhDNS40MjI2NiAxNi4yMzM4IDUuMjk2MDIgMTUuOTAxMSA1LjQyMjg1IDE1LjYxNzdaTTExLjgzNCAxNS4zMzQ1QzEyLjExNzUgMTUuMjA3NCAxMi40NTExIDE1LjMzNDIgMTIuNTc4MSAxNS42MTc3QzEyLjcwNDggMTUuOTAxIDEyLjU3ODEgMTYuMjMzOCAxMi4yOTQ5IDE2LjM2MDhDMTIuMTU3NyAxNi40MjIzIDEyLjAxODEgMTYuNDc5OCAxMS44NzcgMTYuNTMzN0MxMS41ODY4IDE2LjY0NDUgMTEuMjYxMyAxNi40OTk2IDExLjE1MDQgMTYuMjA5NUMxMS4wMzk1IDE1LjkxOTMgMTEuMTg1NCAxNS41OTM4IDExLjQ3NTYgMTUuNDgyOUMxMS41OTY3IDE1LjQzNjYgMTEuNzE2MiAxNS4zODcyIDExLjgzNCAxNS4zMzQ1Wk0zLjE2NDA2IDEzLjc0MzdDMy4zODk3OCAxMy41MzAzIDMuNzQ1NTYgMTMuNTQwNCAzLjk1ODk4IDEzLjc2NjFDNC4wNDgxNCAxMy44NjA0IDQuMTQwMTEgMTMuOTUyMyA0LjIzNDM4IDE0LjA0MTVDNC40NTk4NiAxNC4yNTUgNC40NzAxNCAxNC42MTA4IDQuMjU2ODQgMTQuODM2NEM0LjA0MzM3IDE1LjA2MjEgMy42ODY2NSAxNS4wNzIzIDMuNDYwOTQgMTQuODU4OUMzLjM1MTQ0IDE0Ljc1NTMgMy4yNDUxNiAxNC42NDgxIDMuMTQxNiAxNC41Mzg2QzIuOTI4MyAxNC4zMTI5IDIuOTM4NDEgMTMuOTU3MSAzLjE2NDA2IDEzLjc0MzdaTTE0LjA0MiAxMy43NjYxQzE0LjI1NTUgMTMuNTQwNCAxNC42MTEyIDEzLjUzMDIgMTQuODM2OSAxMy43NDM3QzE1LjA2MjUgMTMuOTU3IDE1LjA3MjUgMTQuMzEyOSAxNC44NTk0IDE0LjUzODZDMTQuNzU1OCAxNC42NDgxIDE0LjY0ODYgMTQuNzU1MyAxNC41MzkxIDE0Ljg1ODlDMTQuMzEzNCAxNS4wNzIgMTMuOTU3NSAxNS4wNjIgMTMuNzQ0MSAxNC44MzY0QzEzLjUzMDcgMTQuNjEwNyAxMy41NDA5IDE0LjI1NSAxMy43NjY2IDE0LjA0MTVDMTMuODYwOSAxMy45NTIzIDEzLjk1MjggMTMuODYwNCAxNC4wNDIgMTMuNzY2MVpNMS43OTEwMiAxMS4xNDk5QzIuMDgxMiAxMS4wMzkxIDIuNDA1NzYgMTEuMTg0OSAyLjUxNjYgMTEuNDc1MUMyLjU2MjkxIDExLjU5NjMgMi42MTMyIDExLjcxNTYgMi42NjYwMiAxMS44MzM1QzIuNzkzMDcgMTIuMTE3IDIuNjY2MyAxMi40NTA2IDIuMzgyODEgMTIuNTc3NkMyLjA5OTQ4IDEyLjcwNDUgMS43NjY4MSAxMi41Nzc2IDEuNjM5NjUgMTIuMjk0NEMxLjU3ODE0IDEyLjE1NzIgMS41MTk3NiAxMi4wMTc3IDEuNDY1ODIgMTEuODc2NUMxLjM1NDk3IDExLjU4NjMgMS41MDA4MSAxMS4yNjA4IDEuNzkxMDIgMTEuMTQ5OVpNMTUuNDgzNCAxMS40NzUxQzE1LjU5NDIgMTEuMTg0OSAxNS45MTk4IDExLjAzOTEgMTYuMjEgMTEuMTQ5OUMxNi41IDExLjI2MDggMTYuNjQ1IDExLjU4NjMgMTYuNTM0MiAxMS44NzY1QzE2LjQ4MDMgMTIuMDE3NiAxNi40MjI4IDEyLjE1NzMgMTYuMzYxMyAxMi4yOTQ0QzE2LjIzNDMgMTIuNTc3NiAxNS45MDE1IDEyLjcwNDMgMTUuNjE4MiAxMi41Nzc2QzE1LjMzNDcgMTIuNDUwNiAxNS4yMDc5IDEyLjExNyAxNS4zMzUgMTEuODMzNUMxNS4zODc3IDExLjcxNTcgMTUuNDM3MSAxMS41OTYyIDE1LjQ4MzQgMTEuNDc1MVpNOSAzLjkzNzAxQzkuMzEwNTggMy45MzcwMSA5LjU2MjM2IDQuMTg4OTcgOS41NjI1IDQuNDk5NTFWNy42MDg4OUM5LjkzODQ2IDcuNzYxMDcgMTAuMjM5NCA4LjA2MTA3IDEwLjM5MTYgOC40MzcwMUgxMkMxMi4zMTA2IDguNDM3MDEgMTIuNTYyNCA4LjY4ODk3IDEyLjU2MjUgOC45OTk1MUMxMi41NjI1IDkuMzEwMTcgMTIuMzEwNyA5LjU2MjAxIDEyIDkuNTYyMDFIMTAuMzkxNkMxMC4xNjkxIDEwLjExMTcgOS42Mjk1MSAxMC40OTk1IDkgMTAuNDk5NUM4LjE3MTc5IDEwLjQ5OTMgNy41IDkuODI3NzggNy41IDguOTk5NTFDNy41MDAxIDguMzcwMjggNy44ODgwOSA3LjgzMTQ5IDguNDM3NSA3LjYwODg5VjQuNDk5NTFDOC40Mzc2NCA0LjE4OTEyIDguNjg5NjQgMy45MzcyNyA5IDMuOTM3MDFaTTEuNTE4NTUgOC4yMjcwNUMxLjgyOTAxIDguMjM1NjIgMi4wNzM4NyA4LjQ5Mzc3IDIuMDY1NDMgOC44MDQyQzIuMDYzNjQgOC44Njg5OSAyLjA2MjUgOC45MzQyNiAyLjA2MjUgOC45OTk1MUMyLjA2MjUgOS4wNjQ3NCAyLjA2MzY1IDkuMTMwMDYgMi4wNjU0MyA5LjE5NDgyQzIuMDc0IDkuNTA1MzcgMS44MjkxIDkuNzY0MzcgMS41MTg1NSA5Ljc3Mjk1QzEuMjA4MSA5Ljc4MTQxIDAuOTQ5OTc5IDkuNTM2NTUgMC45NDE0MDYgOS4yMjYwN0MwLjkzOTMzMiA5LjE1MDkgMC45Mzc1IDkuMDc1MTYgMC45Mzc1IDguOTk5NTFDMC45Mzc1MDMgOC45MjM5MSAwLjkzOTMzMiA4Ljg0ODA4IDAuOTQxNDA2IDguNzcyOTVDMC45NTAyMjEgOC40NjI2OSAxLjIwODI1IDguMjE4NTkgMS41MTg1NSA4LjIyNzA1Wk05IDAuOTM3MDEyQzEzLjQ1MjcgMC45MzcwMTIgMTcuMDYyMyA0LjU0Njg3IDE3LjA2MjUgOC45OTk1MUMxNy4wNjI1IDkuMDc1MTYgMTcuMDYxNiA5LjE1MDkgMTcuMDU5NiA5LjIyNjA3QzE3LjA1MSA5LjUzNjYyIDE2Ljc5MiA5Ljc4MTUyIDE2LjQ4MTQgOS43NzI5NUMxNi4xNzExIDkuNzY0MTQgMTUuOTI3IDkuNTA1MjIgMTUuOTM1NSA5LjE5NDgyQzE1LjkzNzMgOS4xMzAwNiAxNS45Mzc1IDkuMDY0NzMgMTUuOTM3NSA4Ljk5OTUxQzE1LjkzNzMgNS4xNjgxOSAxMi44MzE0IDIuMDYyMDEgOSAyLjA2MjAxQzguOTM0NzUgMi4wNjIwMSA4Ljg2OTQ4IDIuMDYzMTUgOC44MDQ2OSAyLjA2NDk0QzguNDk0MjYgMi4wNzMzOCA4LjIzNjExIDEuODI4NTMgOC4yMjc1NCAxLjUxODA3QzguMjE5MDggMS4yMDc3NiA4LjQ2MzE4IDAuOTQ5NzMzIDguNzczNDQgMC45NDA5MThDOC44NDg1NyAwLjkzODg0MyA4LjkyNDQgMC45MzcwMTUgOSAwLjkzNzAxMlpNMS42Mzk2NSA1LjcwNTU3QzEuNzY2NzMgNS40MjIxNiAyLjA5OTM2IDUuMjk1MzQgMi4zODI4MSA1LjQyMjM2QzIuNjY2MjYgNS41NDk0IDIuNzkyOTcgNS44ODIwNiAyLjY2NjAyIDYuMTY1NTNDMi42MTMxIDYuMjgzNiAyLjU2Mjk5IDYuNDAzNDYgMi41MTY2IDYuNTI0OUMyLjQwNTc2IDYuODE1MDIgMi4wODExNiA2Ljk2MDggMS43OTEwMiA2Ljg1MDFDMS41MDA4MiA2LjczOTI1IDEuMzU0OTkgNi40MTM3NCAxLjQ2NTgyIDYuMTIzNTRDMS41MTk3OSA1Ljk4MjI0IDEuNTc4MSA1Ljg0MjkgMS42Mzk2NSA1LjcwNTU3Wk0zLjQ2MDk0IDMuMTQxMTFDMy42ODY2NSAyLjkyNzY1IDQuMDQzMzcgMi45Mzc4NyA0LjI1Njg0IDMuMTYzNTdDNC40NzAwMiAzLjM4OTI5IDQuNDU5OTYgMy43NDUxMiA0LjIzNDM4IDMuOTU4NUM0LjE0MDA2IDQuMDQ3NjkgNC4wNDgxOCA0LjEzOTU3IDMuOTU4OTggNC4yMzM4OUMzLjc0NTYgNC40NTk0NyAzLjM4OTc3IDQuNDY5NTQgMy4xNjQwNiA0LjI1NjM1QzIuOTM4MzUgNC4wNDI4OSAyLjkyODE0IDMuNjg2MTYgMy4xNDE2IDMuNDYwNDVDMy4yNDUwNiAzLjM1MTA3IDMuMzUxNTUgMy4yNDQ1NyAzLjQ2MDk0IDMuMTQxMTFaTTYuMTI0MDIgMS40NjUzM0M2LjQxNDIzIDEuMzU0NTEgNi43Mzk3NCAxLjUwMDMzIDYuODUwNTkgMS43OTA1M0M2Ljk2MTI5IDIuMDgwNjcgNi44MTU1MSAyLjQwNTI3IDYuNTI1MzkgMi41MTYxMUM2LjQwMzk1IDIuNTYyNSA2LjI4NDA5IDIuNjEyNjEgNi4xNjYwMiAyLjY2NTUzQzUuODgyNTUgMi43OTI0OCA1LjU0OTg4IDIuNjY1NzcgNS40MjI4NSAyLjM4MjMyQzUuMjk1ODMgMi4wOTg4NyA1LjQyMjY1IDEuNzY2MjUgNS43MDYwNSAxLjYzOTE2QzUuODQzMzkgMS41Nzc2MSA1Ljk4MjczIDEuNTE5MyA2LjEyNDAyIDEuNDY1MzNaIiBmaWxsPSIjRkU2NjAwIi8+Cjwvc3ZnPgo=" alt="" aria-hidden="true">
+            <span>Tempo: 3 min</span>
+          </span>
+          <span class="article-card__age">5-10 anni</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="article-card article-card--featured">
+      <div class="article-card__img">
+        <img src="https://www.figma.com/api/mcp/asset/41a52835-9286-42a1-90b5-57cb82ebcda5" alt="Menarca">
+        <span class="article-card__tag-img">Bambino</span>
+      </div>
+      <div class="article-card__body">
+        <p class="article-card__rubrica">Crescita e sviluppo</p>
+        <h3 class="article-card__title article-card--featured">Menarca: guida completa alla prima mestruazione</h3>
+        <p class="article-card__excerpt">Conoscere il menarca aiuta le adolescenti a comprendere meglio i cambiamenti del proprio corpo e ad affrontare con serenità un momento…</p>
+        <div class="article-card__meta">
+          <span class="article-card__time">
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTkuMTk1MzEgMTUuOTM1MUM5LjUwNTcgMTUuOTI2NSA5Ljc2NDYzIDE2LjE3MDYgOS43NzM0NCAxNi40ODFDOS43ODIwMSAxNi43OTE1IDkuNTM3MSAxNy4wNTA1IDkuMjI2NTYgMTcuMDU5MUM5LjE1MTM5IDE3LjA2MTIgOS4wNzU2NSAxNy4wNjIgOSAxNy4wNjJDOC45MjQ0IDE3LjA2MiA4Ljg0ODU3IDE3LjA2MTIgOC43NzM0NCAxNy4wNTkxQzguNDYzMTEgMTcuMDUwMyA4LjIxODk3IDE2Ljc5MTMgOC4yMjc1NCAxNi40ODFDOC4yMzYzNSAxNi4xNzA3IDguNDk0NCAxNS45MjY2IDguODA0NjkgMTUuOTM1MUM4Ljg2OTQ4IDE1LjkzNjggOC45MzQ3NSAxNS45MzcgOSAxNS45MzdDOS4wNjUyMiAxNS45MzcgOS4xMzA1NSAxNS45MzY4IDkuMTk1MzEgMTUuOTM1MVpNNS40MjI4NSAxNS42MTc3QzUuNTQ5OSAxNS4zMzQyIDUuODgyNTMgMTUuMjA3NCA2LjE2NjAyIDE1LjMzNDVDNi4yODQwMyAxNS4zODc0IDYuNDA0MDEgMTUuNDM2NSA2LjUyNTM5IDE1LjQ4MjlDNi44MTU2IDE1LjU5MzggNi45NjE0NCAxNS45MTkzIDYuODUwNTkgMTYuMjA5NUM2LjczOTcgMTYuNDk5NiA2LjQxNDIxIDE2LjY0NDUgNi4xMjQwMiAxNi41MzM3QzUuOTgyOCAxNi40Nzk3IDUuODQzMzIgMTYuNDIyNCA1LjcwNjA1IDE2LjM2MDhDNS40MjI2NiAxNi4yMzM4IDUuMjk2MDIgMTUuOTAxMSA1LjQyMjg1IDE1LjYxNzdaTTExLjgzNCAxNS4zMzQ1QzEyLjExNzUgMTUuMjA3NCAxMi40NTExIDE1LjMzNDIgMTIuNTc4MSAxNS42MTc3QzEyLjcwNDggMTUuOTAxIDEyLjU3ODEgMTYuMjMzOCAxMi4yOTQ5IDE2LjM2MDhDMTIuMTU3NyAxNi40MjIzIDEyLjAxODEgMTYuNDc5OCAxMS44NzcgMTYuNTMzN0MxMS41ODY4IDE2LjY0NDUgMTEuMjYxMyAxNi40OTk2IDExLjE1MDQgMTYuMjA5NUMxMS4wMzk1IDE1LjkxOTMgMTEuMTg1NCAxNS41OTM4IDExLjQ3NTYgMTUuNDgyOUMxMS41OTY3IDE1LjQzNjYgMTEuNzE2MiAxNS4zODcyIDExLjgzNCAxNS4zMzQ1Wk0zLjE2NDA2IDEzLjc0MzdDMy4zODk3OCAxMy41MzAzIDMuNzQ1NTYgMTMuNTQwNCAzLjk1ODk4IDEzLjc2NjFDNC4wNDgxNCAxMy44NjA0IDQuMTQwMTEgMTMuOTUyMyA0LjIzNDM4IDE0LjA0MTVDNC40NTk4NiAxNC4yNTUgNC40NzAxNCAxNC42MTA4IDQuMjU2ODQgMTQuODM2NEM0LjA0MzM3IDE1LjA2MjEgMy42ODY2NSAxNS4wNzIzIDMuNDYwOTQgMTQuODU4OUMzLjM1MTQ0IDE0Ljc1NTMgMy4yNDUxNiAxNC42NDgxIDMuMTQxNiAxNC41Mzg2QzIuOTI4MyAxNC4zMTI5IDIuOTM4NDEgMTMuOTU3MSAzLjE2NDA2IDEzLjc0MzdaTTE0LjA0MiAxMy43NjYxQzE0LjI1NTUgMTMuNTQwNCAxNC42MTEyIDEzLjUzMDIgMTQuODM2OSAxMy43NDM3QzE1LjA2MjUgMTMuOTU3IDE1LjA3MjUgMTQuMzEyOSAxNC44NTk0IDE0LjUzODZDMTQuNzU1OCAxNC42NDgxIDE0LjY0ODYgMTQuNzU1MyAxNC41MzkxIDE0Ljg1ODlDMTQuMzEzNCAxNS4wNzIgMTMuOTU3NSAxNS4wNjIgMTMuNzQ0MSAxNC44MzY0QzEzLjUzMDcgMTQuNjEwNyAxMy41NDA5IDE0LjI1NSAxMy43NjY2IDE0LjA0MTVDMTMuODYwOSAxMy45NTIzIDEzLjk1MjggMTMuODYwNCAxNC4wNDIgMTMuNzY2MVpNMS43OTEwMiAxMS4xNDk5QzIuMDgxMiAxMS4wMzkxIDIuNDA1NzYgMTEuMTg0OSAyLjUxNjYgMTEuNDc1MUMyLjU2MjkxIDExLjU5NjMgMi42MTMyIDExLjcxNTYgMi42NjYwMiAxMS44MzM1QzIuNzkzMDcgMTIuMTE3IDIuNjY2MyAxMi40NTA2IDIuMzgyODEgMTIuNTc3NkMyLjA5OTQ4IDEyLjcwNDUgMS43NjY4MSAxMi41Nzc2IDEuNjM5NjUgMTIuMjk0NEMxLjU3ODE0IDEyLjE1NzIgMS41MTk3NiAxMi4wMTc3IDEuNDY1ODIgMTEuODc2NUMxLjM1NDk3IDExLjU4NjMgMS41MDA4MSAxMS4yNjA4IDEuNzkxMDIgMTEuMTQ5OVpNMTUuNDgzNCAxMS40NzUxQzE1LjU5NDIgMTEuMTg0OSAxNS45MTk4IDExLjAzOTEgMTYuMjEgMTEuMTQ5OUMxNi41IDExLjI2MDggMTYuNjQ1IDExLjU4NjMgMTYuNTM0MiAxMS44NzY1QzE2LjQ4MDMgMTIuMDE3NiAxNi40MjI4IDEyLjE1NzMgMTYuMzYxMyAxMi4yOTQ0QzE2LjIzNDMgMTIuNTc3NiAxNS45MDE1IDEyLjcwNDMgMTUuNjE4MiAxMi41Nzc2QzE1LjMzNDcgMTIuNDUwNiAxNS4yMDc5IDEyLjExNyAxNS4zMzUgMTEuODMzNUMxNS4zODc3IDExLjcxNTcgMTUuNDM3MSAxMS41OTYyIDE1LjQ4MzQgMTEuNDc1MVpNOSAzLjkzNzAxQzkuMzEwNTggMy45MzcwMSA5LjU2MjM2IDQuMTg4OTcgOS41NjI1IDQuNDk5NTFWNy42MDg4OUM5LjkzODQ2IDcuNzYxMDcgMTAuMjM5NCA4LjA2MTA3IDEwLjM5MTYgOC40MzcwMUgxMkMxMi4zMTA2IDguNDM3MDEgMTIuNTYyNCA4LjY4ODk3IDEyLjU2MjUgOC45OTk1MUMxMi41NjI1IDkuMzEwMTcgMTIuMzEwNyA5LjU2MjAxIDEyIDkuNTYyMDFIMTAuMzkxNkMxMC4xNjkxIDEwLjExMTcgOS42Mjk1MSAxMC40OTk1IDkgMTAuNDk5NUM4LjE3MTc5IDEwLjQ5OTMgNy41IDkuODI3NzggNy41IDguOTk5NTFDNy41MDAxIDguMzcwMjggNy44ODgwOSA3LjgzMTQ5IDguNDM3NSA3LjYwODg5VjQuNDk5NTFDOC40Mzc2NCA0LjE4OTEyIDguNjg5NjQgMy45MzcyNyA5IDMuOTM3MDFaTTEuNTE4NTUgOC4yMjcwNUMxLjgyOTAxIDguMjM1NjIgMi4wNzM4NyA4LjQ5Mzc3IDIuMDY1NDMgOC44MDQyQzIuMDYzNjQgOC44Njg5OSAyLjA2MjUgOC45MzQyNiAyLjA2MjUgOC45OTk1MUMyLjA2MjUgOS4wNjQ3NCAyLjA2MzY1IDkuMTMwMDYgMi4wNjU0MyA5LjE5NDgyQzIuMDc0IDkuNTA1MzcgMS44MjkxIDkuNzY0MzcgMS41MTg1NSA5Ljc3Mjk1QzEuMjA4MSA5Ljc4MTQxIDAuOTQ5OTc5IDkuNTM2NTUgMC45NDE0MDYgOS4yMjYwN0MwLjkzOTMzMiA5LjE1MDkgMC45Mzc1IDkuMDc1MTYgMC45Mzc1IDguOTk5NTFDMC45Mzc1MDMgOC45MjM5MSAwLjkzOTMzMiA4Ljg0ODA4IDAuOTQxNDA2IDguNzcyOTVDMC45NTAyMjEgOC40NjI2OSAxLjIwODI1IDguMjE4NTkgMS41MTg1NSA4LjIyNzA1Wk05IDAuOTM3MDEyQzEzLjQ1MjcgMC45MzcwMTIgMTcuMDYyMyA0LjU0Njg3IDE3LjA2MjUgOC45OTk1MUMxNy4wNjI1IDkuMDc1MTYgMTcuMDYxNiA5LjE1MDkgMTcuMDU5NiA5LjIyNjA3QzE3LjA1MSA5LjUzNjYyIDE2Ljc5MiA5Ljc4MTUyIDE2LjQ4MTQgOS43NzI5NUMxNi4xNzExIDkuNzY0MTQgMTUuOTI3IDkuNTA1MjIgMTUuOTM1NSA5LjE5NDgyQzE1LjkzNzMgOS4xMzAwNiAxNS45Mzc1IDkuMDY0NzMgMTUuOTM3NSA4Ljk5OTUxQzE1LjkzNzMgNS4xNjgxOSAxMi44MzE0IDIuMDYyMDEgOSAyLjA2MjAxQzguOTM0NzUgMi4wNjIwMSA4Ljg2OTQ4IDIuMDYzMTUgOC44MDQ2OSAyLjA2NDk0QzguNDk0MjYgMi4wNzMzOCA4LjIzNjExIDEuODI4NTMgOC4yMjc1NCAxLjUxODA3QzguMjE5MDggMS4yMDc3NiA4LjQ2MzE4IDAuOTQ5NzMzIDguNzczNDQgMC45NDA5MThDOC44NDg1NyAwLjkzODg0MyA4LjkyNDQgMC45MzcwMTUgOSAwLjkzNzAxMlpNMS42Mzk2NSA1LjcwNTU3QzEuNzY2NzMgNS40MjIxNiAyLjA5OTM2IDUuMjk1MzQgMi4zODI4MSA1LjQyMjM2QzIuNjY2MjYgNS41NDk0IDIuNzkyOTcgNS44ODIwNiAyLjY2NjAyIDYuMTY1NTNDMi42MTMxIDYuMjgzNiAyLjU2Mjk5IDYuNDAzNDYgMi41MTY2IDYuNTI0OUMyLjQwNTc2IDYuODE1MDIgMi4wODExNiA2Ljk2MDggMS43OTEwMiA2Ljg1MDFDMS41MDA4MiA2LjczOTI1IDEuMzU0OTkgNi40MTM3NCAxLjQ2NTgyIDYuMTIzNTRDMS41MTk3OSA1Ljk4MjI0IDEuNTc4MSA1Ljg0MjkgMS42Mzk2NSA1LjcwNTU3Wk0zLjQ2MDk0IDMuMTQxMTFDMy42ODY2NSAyLjkyNzY1IDQuMDQzMzcgMi45Mzc4NyA0LjI1Njg0IDMuMTYzNTdDNC40NzAwMiAzLjM4OTI5IDQuNDU5OTYgMy43NDUxMiA0LjIzNDM4IDMuOTU4NUM0LjE0MDA2IDQuMDQ3NjkgNC4wNDgxOCA0LjEzOTU3IDMuOTU4OTggNC4yMzM4OUMzLjc0NTYgNC40NTk0NyAzLjM4OTc3IDQuNDY5NTQgMy4xNjQwNiA0LjI1NjM1QzIuOTM4MzUgNC4wNDI4OSAyLjkyODE0IDMuNjg2MTYgMy4xNDE2IDMuNDYwNDVDMy4yNDUwNiAzLjM1MTA3IDMuMzUxNTUgMy4yNDQ1NyAzLjQ2MDk0IDMuMTQxMTFaTTYuMTI0MDIgMS40NjUzM0M2LjQxNDIzIDEuMzU0NTEgNi43Mzk3NCAxLjUwMDMzIDYuODUwNTkgMS43OTA1M0M2Ljk2MTI5IDIuMDgwNjcgNi44MTU1MSAyLjQwNTI3IDYuNTI1MzkgMi41MTYxMUM2LjQwMzk1IDIuNTYyNSA2LjI4NDA5IDIuNjEyNjEgNi4xNjYwMiAyLjY2NTUzQzUuODgyNTUgMi43OTI0OCA1LjU0OTg4IDIuNjY1NzcgNS40MjI4NSAyLjM4MjMyQzUuMjk1ODMgMi4wOTg4NyA1LjQyMjY1IDEuNzY2MjUgNS43MDYwNSAxLjYzOTE2QzUuODQzMzkgMS41Nzc2MSA1Ljk4MjczIDEuNTE5MyA2LjEyNDAyIDEuNDY1MzNaIiBmaWxsPSIjRkU2NjAwIi8+Cjwvc3ZnPgo=" alt="" aria-hidden="true">
+            <span>Tempo: 3 min</span>
+          </span>
+          <span class="article-card__age">5-10 anni</span>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <!-- Riga 2: 3 card (prima 2 normali + 1 abbonati) -->
+  <div class="articles__grid-3">
+    <article class="article-card">
+      <div class="article-card__img">
+        <img src="https://www.figma.com/api/mcp/asset/5c1869c1-474a-4875-bc20-21d6dc5dac85" alt="Sepsi">
+        <span class="article-card__tag-img">Medicina</span>
+      </div>
+      <div class="article-card__body">
+        <p class="article-card__rubrica">Malattie e disturbi</p>
+        <h3 class="article-card__title">Sepsi: cos'è, cause, sintomi e trattamento</h3>
+        <p class="article-card__excerpt">Nei neonati è rara ma particolarmente pericolosa. Riconoscere i sintomi precoci è fondamentale per ridurre le complicanze.</p>
+        <div class="article-card__meta">
+          <span class="article-card__time">
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTkuMTk1MzEgMTUuOTM1MUM5LjUwNTcgMTUuOTI2NSA5Ljc2NDYzIDE2LjE3MDYgOS43NzM0NCAxNi40ODFDOS43ODIwMSAxNi43OTE1IDkuNTM3MSAxNy4wNTA1IDkuMjI2NTYgMTcuMDU5MUM5LjE1MTM5IDE3LjA2MTIgOS4wNzU2NSAxNy4wNjIgOSAxNy4wNjJDOC45MjQ0IDE3LjA2MiA4Ljg0ODU3IDE3LjA2MTIgOC43NzM0NCAxNy4wNTkxQzguNDYzMTEgMTcuMDUwMyA4LjIxODk3IDE2Ljc5MTMgOC4yMjc1NCAxNi40ODFDOC4yMzYzNSAxNi4xNzA3IDguNDk0NCAxNS45MjY2IDguODA0NjkgMTUuOTM1MUM4Ljg2OTQ4IDE1LjkzNjggOC45MzQ3NSAxNS45MzcgOSAxNS45MzdDOS4wNjUyMiAxNS45MzcgOS4xMzA1NSAxNS45MzY4IDkuMTk1MzEgMTUuOTM1MVpNNS40MjI4NSAxNS42MTc3QzUuNTQ5OSAxNS4zMzQyIDUuODgyNTMgMTUuMjA3NCA2LjE2NjAyIDE1LjMzNDVDNi4yODQwMyAxNS4zODc0IDYuNDA0MDEgMTUuNDM2NSA2LjUyNTM5IDE1LjQ4MjlDNi44MTU2IDE1LjU5MzggNi45NjE0NCAxNS45MTkzIDYuODUwNTkgMTYuMjA5NUM2LjczOTcgMTYuNDk5NiA2LjQxNDIxIDE2LjY0NDUgNi4xMjQwMiAxNi41MzM3QzUuOTgyOCAxNi40Nzk3IDUuODQzMzIgMTYuNDIyNCA1LjcwNjA1IDE2LjM2MDhDNS40MjI2NiAxNi4yMzM4IDUuMjk2MDIgMTUuOTAxMSA1LjQyMjg1IDE1LjYxNzdaTTExLjgzNCAxNS4zMzQ1QzEyLjExNzUgMTUuMjA3NCAxMi40NTExIDE1LjMzNDIgMTIuNTc4MSAxNS42MTc3QzEyLjcwNDggMTUuOTAxIDEyLjU3ODEgMTYuMjMzOCAxMi4yOTQ5IDE2LjM2MDhDMTIuMTU3NyAxNi40MjIzIDEyLjAxODEgMTYuNDc5OCAxMS44NzcgMTYuNTMzN0MxMS41ODY4IDE2LjY0NDUgMTEuMjYxMyAxNi40OTk2IDExLjE1MDQgMTYuMjA5NUMxMS4wMzk1IDE1LjkxOTMgMTEuMTg1NCAxNS41OTM4IDExLjQ3NTYgMTUuNDgyOUMxMS41OTY3IDE1LjQzNjYgMTEuNzE2MiAxNS4zODcyIDExLjgzNCAxNS4zMzQ1Wk0zLjE2NDA2IDEzLjc0MzdDMy4zODk3OCAxMy41MzAzIDMuNzQ1NTYgMTMuNTQwNCAzLjk1ODk4IDEzLjc2NjFDNC4wNDgxNCAxMy44NjA0IDQuMTQwMTEgMTMuOTUyMyA0LjIzNDM4IDE0LjA0MTVDNC40NTk4NiAxNC4yNTUgNC40NzAxNCAxNC42MTA4IDQuMjU2ODQgMTQuODM2NEM0LjA0MzM3IDE1LjA2MjEgMy42ODY2NSAxNS4wNzIzIDMuNDYwOTQgMTQuODU4OUMzLjM1MTQ0IDE0Ljc1NTMgMy4yNDUxNiAxNC42NDgxIDMuMTQxNiAxNC41Mzg2QzIuOTI4MyAxNC4zMTI5IDIuOTM4NDEgMTMuOTU3MSAzLjE2NDA2IDEzLjc0MzdaTTE0LjA0MiAxMy43NjYxQzE0LjI1NTUgMTMuNTQwNCAxNC42MTEyIDEzLjUzMDIgMTQuODM2OSAxMy43NDM3QzE1LjA2MjUgMTMuOTU3IDE1LjA3MjUgMTQuMzEyOSAxNC44NTk0IDE0LjUzODZDMTQuNzU1OCAxNC42NDgxIDE0LjY0ODYgMTQuNzU1MyAxNC41MzkxIDE0Ljg1ODlDMTQuMzEzNCAxNS4wNzIgMTMuOTU3NSAxNS4wNjIgMTMuNzQ0MSAxNC44MzY0QzEzLjUzMDcgMTQuNjEwNyAxMy41NDA5IDE0LjI1NSAxMy43NjY2IDE0LjA0MTVDMTMuODYwOSAxMy45NTIzIDEzLjk1MjggMTMuODYwNCAxNC4wNDIgMTMuNzY2MVpNMS43OTEwMiAxMS4xNDk5QzIuMDgxMiAxMS4wMzkxIDIuNDA1NzYgMTEuMTg0OSAyLjUxNjYgMTEuNDc1MUMyLjU2MjkxIDExLjU5NjMgMi42MTMyIDExLjcxNTYgMi42NjYwMiAxMS44MzM1QzIuNzkzMDcgMTIuMTE3IDIuNjY2MyAxMi40NTA2IDIuMzgyODEgMTIuNTc3NkMyLjA5OTQ4IDEyLjcwNDUgMS43NjY4MSAxMi41Nzc2IDEuNjM5NjUgMTIuMjk0NEMxLjU3ODE0IDEyLjE1NzIgMS41MTk3NiAxMi4wMTc3IDEuNDY1ODIgMTEuODc2NUMxLjM1NDk3IDExLjU4NjMgMS41MDA4MSAxMS4yNjA4IDEuNzkxMDIgMTEuMTQ5OVpNMTUuNDgzNCAxMS40NzUxQzE1LjU5NDIgMTEuMTg0OSAxNS45MTk4IDExLjAzOTEgMTYuMjEgMTEuMTQ5OUMxNi41IDExLjI2MDggMTYuNjQ1IDExLjU4NjMgMTYuNTM0MiAxMS44NzY1QzE2LjQ4MDMgMTIuMDE3NiAxNi40MjI4IDEyLjE1NzMgMTYuMzYxMyAxMi4yOTQ0QzE2LjIzNDMgMTIuNTc3NiAxNS45MDE1IDEyLjcwNDMgMTUuNjE4MiAxMi41Nzc2QzE1LjMzNDcgMTIuNDUwNiAxNS4yMDc5IDEyLjExNyAxNS4zMzUgMTEuODMzNUMxNS4zODc3IDExLjcxNTcgMTUuNDM3MSAxMS41OTYyIDE1LjQ4MzQgMTEuNDc1MVpNOSAzLjkzNzAxQzkuMzEwNTggMy45MzcwMSA5LjU2MjM2IDQuMTg4OTcgOS41NjI1IDQuNDk5NTFWNy42MDg4OUM5LjkzODQ2IDcuNzYxMDcgMTAuMjM5NCA4LjA2MTA3IDEwLjM5MTYgOC40MzcwMUgxMkMxMi4zMTA2IDguNDM3MDEgMTIuNTYyNCA4LjY4ODk3IDEyLjU2MjUgOC45OTk1MUMxMi41NjI1IDkuMzEwMTcgMTIuMzEwNyA5LjU2MjAxIDEyIDkuNTYyMDFIMTAuMzkxNkMxMC4xNjkxIDEwLjExMTcgOS42Mjk1MSAxMC40OTk1IDkgMTAuNDk5NUM4LjE3MTc5IDEwLjQ5OTMgNy41IDkuODI3NzggNy41IDguOTk5NTFDNy41MDAxIDguMzcwMjggNy44ODgwOSA3LjgzMTQ5IDguNDM3NSA3LjYwODg5VjQuNDk5NTFDOC40Mzc2NCA0LjE4OTEyIDguNjg5NjQgMy45MzcyNyA5IDMuOTM3MDFaTTEuNTE4NTUgOC4yMjcwNUMxLjgyOTAxIDguMjM1NjIgMi4wNzM4NyA4LjQ5Mzc3IDIuMDY1NDMgOC44MDQyQzIuMDYzNjQgOC44Njg5OSAyLjA2MjUgOC45MzQyNiAyLjA2MjUgOC45OTk1MUMyLjA2MjUgOS4wNjQ3NCAyLjA2MzY1IDkuMTMwMDYgMi4wNjU0MyA5LjE5NDgyQzIuMDc0IDkuNTA1MzcgMS44MjkxIDkuNzY0MzcgMS41MTg1NSA5Ljc3Mjk1QzEuMjA4MSA5Ljc4MTQxIDAuOTQ5OTc5IDkuNTM2NTUgMC45NDE0MDYgOS4yMjYwN0MwLjkzOTMzMiA5LjE1MDkgMC45Mzc1IDkuMDc1MTYgMC45Mzc1IDguOTk5NTFDMC45Mzc1MDMgOC45MjM5MSAwLjkzOTMzMiA4Ljg0ODA4IDAuOTQxNDA2IDguNzcyOTVDMC45NTAyMjEgOC40NjI2OSAxLjIwODI1IDguMjE4NTkgMS41MTg1NSA4LjIyNzA1Wk05IDAuOTM3MDEyQzEzLjQ1MjcgMC45MzcwMTIgMTcuMDYyMyA0LjU0Njg3IDE3LjA2MjUgOC45OTk1MUMxNy4wNjI1IDkuMDc1MTYgMTcuMDYxNiA5LjE1MDkgMTcuMDU5NiA5LjIyNjA3QzE3LjA1MSA5LjUzNjYyIDE2Ljc5MiA5Ljc4MTUyIDE2LjQ4MTQgOS43NzI5NUMxNi4xNzExIDkuNzY0MTQgMTUuOTI3IDkuNTA1MjIgMTUuOTM1NSA5LjE5NDgyQzE1LjkzNzMgOS4xMzAwNiAxNS45Mzc1IDkuMDY0NzMgMTUuOTM3NSA4Ljk5OTUxQzE1LjkzNzMgNS4xNjgxOSAxMi44MzE0IDIuMDYyMDEgOSAyLjA2MjAxQzguOTM0NzUgMi4wNjIwMSA4Ljg2OTQ4IDIuMDYzMTUgOC44MDQ2OSAyLjA2NDk0QzguNDk0MjYgMi4wNzMzOCA4LjIzNjExIDEuODI4NTMgOC4yMjc1NCAxLjUxODA3QzguMjE5MDggMS4yMDc3NiA4LjQ2MzE4IDAuOTQ5NzMzIDguNzczNDQgMC45NDA5MThDOC44NDg1NyAwLjkzODg0MyA4LjkyNDQgMC45MzcwMTUgOSAwLjkzNzAxMlpNMS42Mzk2NSA1LjcwNTU3QzEuNzY2NzMgNS40MjIxNiAyLjA5OTM2IDUuMjk1MzQgMi4zODI4MSA1LjQyMjM2QzIuNjY2MjYgNS41NDk0IDIuNzkyOTcgNS44ODIwNiAyLjY2NjAyIDYuMTY1NTNDMi42MTMxIDYuMjgzNiAyLjU2Mjk5IDYuNDAzNDYgMi41MTY2IDYuNTI0OUMyLjQwNTc2IDYuODE1MDIgMi4wODExNiA2Ljk2MDggMS43OTEwMiA2Ljg1MDFDMS41MDA4MiA2LjczOTI1IDEuMzU0OTkgNi40MTM3NCAxLjQ2NTgyIDYuMTIzNTRDMS41MTk3OSA1Ljk4MjI0IDEuNTc4MSA1Ljg0MjkgMS42Mzk2NSA1LjcwNTU3Wk0zLjQ2MDk0IDMuMTQxMTFDMy42ODY2NSAyLjkyNzY1IDQuMDQzMzcgMi45Mzc4NyA0LjI1Njg0IDMuMTYzNTdDNC40NzAwMiAzLjM4OTI5IDQuNDU5OTYgMy43NDUxMiA0LjIzNDM4IDMuOTU4NUM0LjE0MDA2IDQuMDQ3NjkgNC4wNDgxOCA0LjEzOTU3IDMuOTU4OTggNC4yMzM4OUMzLjc0NTYgNC40NTk0NyAzLjM4OTc3IDQuNDY5NTQgMy4xNjQwNiA0LjI1NjM1QzIuOTM4MzUgNC4wNDI4OSAyLjkyODE0IDMuNjg2MTYgMy4xNDE2IDMuNDYwNDVDMy4yNDUwNiAzLjM1MTA3IDMuMzUxNTUgMy4yNDQ1NyAzLjQ2MDk0IDMuMTQxMTFaTTYuMTI0MDIgMS40NjUzM0M2LjQxNDIzIDEuMzU0NTEgNi43Mzk3NCAxLjUwMDMzIDYuODUwNTkgMS43OTA1M0M2Ljk2MTI5IDIuMDgwNjcgNi44MTU1MSAyLjQwNTI3IDYuNTI1MzkgMi41MTYxMUM2LjQwMzk1IDIuNTYyNSA2LjI4NDA5IDIuNjEyNjEgNi4xNjYwMiAyLjY2NTUzQzUuODgyNTUgMi43OTI0OCA1LjU0OTg4IDIuNjY1NzcgNS40MjI4NSAyLjM4MjMyQzUuMjk1ODMgMi4wOTg4NyA1LjQyMjY1IDEuNzY2MjUgNS43MDYwNSAxLjYzOTE2QzUuODQzMzkgMS41Nzc2MSA1Ljk4MjczIDEuNTE5MyA2LjEyNDAyIDEuNDY1MzNaIiBmaWxsPSIjRkU2NjAwIi8+Cjwvc3ZnPgo=" alt="" aria-hidden="true">
+            <span>Tempo: 3 min</span>
+          </span>
+          <span class="article-card__age">5-10 anni</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="article-card">
+      <div class="article-card__img">
+        <img src="https://www.figma.com/api/mcp/asset/96420c55-661a-4d99-8f37-31ee3e767c6b" alt="Placenta previa">
+        <span class="article-card__tag-img">Gravidanza</span>
+      </div>
+      <div class="article-card__body">
+        <p class="article-card__rubrica">Disturbi e complicanze</p>
+        <h3 class="article-card__title">Placenta previa: sintomi, rischi e trattamento</h3>
+        <p class="article-card__excerpt">Una posizione anomala della placenta può ostacolare il parto vaginale. Come riconoscerla e affrontarla con consapevolezza.</p>
+        <div class="article-card__meta">
+          <span class="article-card__time">
+            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTkuMTk1MzEgMTUuOTM1MUM5LjUwNTcgMTUuOTI2NSA5Ljc2NDYzIDE2LjE3MDYgOS43NzM0NCAxNi40ODFDOS43ODIwMSAxNi43OTE1IDkuNTM3MSAxNy4wNTA1IDkuMjI2NTYgMTcuMDU5MUM5LjE1MTM5IDE3LjA2MTIgOS4wNzU2NSAxNy4wNjIgOSAxNy4wNjJDOC45MjQ0IDE3LjA2MiA4Ljg0ODU3IDE3LjA2MTIgOC43NzM0NCAxNy4wNTkxQzguNDYzMTEgMTcuMDUwMyA4LjIxODk3IDE2Ljc5MTMgOC4yMjc1NCAxNi40ODFDOC4yMzYzNSAxNi4xNzA3IDguNDk0NCAxNS45MjY2IDguODA0NjkgMTUuOTM1MUM4Ljg2OTQ4IDE1LjkzNjggOC45MzQ3NSAxNS45MzcgOSAxNS45MzdDOS4wNjUyMiAxNS45MzcgOS4xMzA1NSAxNS45MzY4IDkuMTk1MzEgMTUuOTM1MVpNNS40MjI4NSAxNS42MTc3QzUuNTQ5OSAxNS4zMzQyIDUuODgyNTMgMTUuMjA3NCA2LjE2NjAyIDE1LjMzNDVDNi4yODQwMyAxNS4zODc0IDYuNDA0MDEgMTUuNDM2NSA2LjUyNTM5IDE1LjQ4MjlDNi44MTU2IDE1LjU5MzggNi45NjE0NCAxNS45MTkzIDYuODUwNTkgMTYuMjA5NUM2LjczOTcgMTYuNDk5NiA2LjQxNDIxIDE2LjY0NDUgNi4xMjQwMiAxNi41MzM3QzUuOTgyOCAxNi40Nzk3IDUuODQzMzIgMTYuNDIyNCA1LjcwNjA1IDE2LjM2MDhDNS40MjI2NiAxNi4yMzM4IDUuMjk2MDIgMTUuOTAxMSA1LjQyMjg1IDE1LjYxNzdaTTExLjgzNCAxNS4zMzQ1QzEyLjExNzUgMTUuMjA3NCAxMi40NTExIDE1LjMzNDIgMTIuNTc4MSAxNS42MTc3QzEyLjcwNDggMTUuOTAxIDEyLjU3ODEgMTYuMjMzOCAxMi4yOTQ5IDE2LjM2MDhDMTIuMTU3NyAxNi40MjIzIDEyLjAxODEgMTYuNDc5OCAxMS44NzcgMTYuNTMzN0MxMS41ODY4IDE2LjY0NDUgMTEuMjYxMyAxNi40OTk2IDExLjE1MDQgMTYuMjA5NUMxMS4wMzk1IDE1LjkxOTMgMTEuMTg1NCAxNS41OTM4IDExLjQ3NTYgMTUuNDgyOUMxMS41OTY3IDE1LjQzNjYgMTEuNzE2MiAxNS4zODcyIDExLjgzNCAxNS4zMzQ1Wk0zLjE2NDA2IDEzLjc0MzdDMy4zODk3OCAxMy41MzAzIDMuNzQ1NTYgMTMuNTQwNCAzLjk1ODk4IDEzLjc2NjFDNC4wNDgxNCAxMy44NjA0IDQuMTQwMTEgMTMuOTUyMyA0LjIzNDM4IDE0LjA0MTVDNC40NTk4NiAxNC4yNTUgNC40NzAxNCAxNC42MTA4IDQuMjU2ODQgMTQuODM2NEM0LjA0MzM3IDE1LjA2MjEgMy42ODY2NSAxNS4wNzIzIDMuNDYwOTQgMTQuODU4OUMzLjM1MTQ0IDE0Ljc1NTMgMy4yNDUxNiAxNC42NDgxIDMuMTQxNiAxNC41Mzg2QzIuOTI4MyAxNC4zMTI5IDIuOTM4NDEgMTMuOTU3MSAzLjE2NDA2IDEzLjc0MzdaTTE0LjA0MiAxMy43NjYxQzE0LjI1NTUgMTMuNTQwNCAxNC42MTEyIDEzLjUzMDIgMTQuODM2OSAxMy43NDM3QzE1LjA2MjUgMTMuOTU3IDE1LjA3MjUgMTQuMzEyOSAxNC44NTk0IDE0LjUzODZDMTQuNzU1OCAxNC42NDgxIDE0LjY0ODYgMTQuNzU1MyAxNC41MzkxIDE0Ljg1ODlDMTQuMzEzNCAxNS4wNzIgMTMuOTU3NSAxNS4wNjIgMTMuNzQ0MSAxNC44MzY0QzEzLjUzMDcgMTQuNjEwNyAxMy41NDA5IDE0LjI1NSAxMy43NjY2IDE0LjA0MTVDMTMuODYwOSAxMy45NTIzIDEzLjk1MjggMTMuODYwNCAxNC4wNDIgMTMuNzY2MVpNMS43OTEwMiAxMS4xNDk5QzIuMDgxMiAxMS4wMzkxIDIuNDA1NzYgMTEuMTg0OSAyLjUxNjYgMTEuNDc1MUMyLjU2MjkxIDExLjU5NjMgMi42MTMyIDExLjcxNTYgMi42NjYwMiAxMS44MzM1QzIuNzkzMDcgMTIuMTE3IDIuNjY2MyAxMi40NTA2IDIuMzgyODEgMTIuNTc3NkMyLjA5OTQ4IDEyLjcwNDUgMS43NjY4MSAxMi41Nzc2IDEuNjM5NjUgMTIuMjk0NEMxLjU3ODE0IDEyLjE1NzIgMS41MTk3NiAxMi4wMTc3IDEuNDY1ODIgMTEuODc2NUMxLjM1NDk3IDExLjU4NjMgMS41MDA4MSAxMS4yNjA4IDEuNzkxMDIgMTEuMTQ5OVpNMTUuNDgzNCAxMS40NzUxQzE1LjU5NDIgMTEuMTg0OSAxNS45MTk4IDExLjAzOTEgMTYuMjEgMTEuMTQ5OUMxNi41IDExLjI2MDggMTYuNjQ1IDExLjU4NjMgMTYuNTM0MiAxMS44NzY1QzE2LjQ4MDMgMTIuMDE3NiAxNi40MjI4IDEyLjE1NzMgMTYuMzYxMyAxMi4yOTQ0QzE2LjIzNDMgMTIuNTc3NiAxNS45MDE1IDEyLjcwNDMgMTUuNjE4MiAxMi41Nzc2QzE1LjMzNDcgMTIuNDUwNiAxNS4yMDc5IDEyLjExNyAxNS4zMzUgMTEuODMzNUMxNS4zODc3IDExLjcxNTcgMTUuNDM3MSAxMS41OTYyIDE1LjQ4MzQgMTEuNDc1MVpNOSAzLjkzNzAxQzkuMzEwNTggMy45MzcwMSA5LjU2MjM2IDQuMTg4OTcgOS41NjI1IDQuNDk5NTFWNy42MDg4OUM5LjkzODQ2IDcuNzYxMDcgMTAuMjM5NCA4LjA2MTA3IDEwLjM5MTYgOC40MzcwMUgxMkMxMi4zMTA2IDguNDM3MDEgMTIuNTYyNCA4LjY4ODk3IDEyLjU2MjUgOC45OTk1MUMxMi41NjI1IDkuMzEwMTcgMTIuMzEwNyA5LjU2MjAxIDEyIDkuNTYyMDFIMTAuMzkxNkMxMC4xNjkxIDEwLjExMTcgOS42Mjk1MSAxMC40OTk1IDkgMTAuNDk5NUM4LjE3MTc5IDEwLjQ5OTMgNy41IDkuODI3NzggNy41IDguOTk5NTFDNy41MDAxIDguMzcwMjggNy44ODgwOSA3LjgzMTQ5IDguNDM3NSA3LjYwODg5VjQuNDk5NTFDOC40Mzc2NCA0LjE4OTEyIDguNjg5NjQgMy45MzcyNyA5IDMuOTM3MDFaTTEuNTE4NTUgOC4yMjcwNUMxLjgyOTAxIDguMjM1NjIgMi4wNzM4NyA4LjQ5Mzc3IDIuMDY1NDMgOC44MDQyQzIuMDYzNjQgOC44Njg5OSAyLjA2MjUgOC45MzQyNiAyLjA2MjUgOC45OTk1MUMyLjA2MjUgOS4wNjQ3NCAyLjA2MzY1IDkuMTMwMDYgMi4wNjU0MyA5LjE5NDgyQzIuMDc0IDkuNTA1MzcgMS44MjkxIDkuNzY0MzcgMS41MTg1NSA5Ljc3Mjk1QzEuMjA4MSA5Ljc4MTQxIDAuOTQ5OTc5IDkuNTM2NTUgMC45NDE0MDYgOS4yMjYwN0MwLjkzOTMzMiA5LjE1MDkgMC45Mzc1IDkuMDc1MTYgMC45Mzc1IDguOTk5NTFDMC45Mzc1MDMgOC45MjM5MSAwLjkzOTMzMiA4Ljg0ODA4IDAuOTQxNDA2IDguNzcyOTVDMC45NTAyMjEgOC40NjI2OSAxLjIwODI1IDguMjE4NTkgMS41MTg1NSA4LjIyNzA1Wk05IDAuOTM3MDEyQzEzLjQ1MjcgMC45MzcwMTIgMTcuMDYyMyA0LjU0Njg3IDE3LjA2MjUgOC45OTk1MUMxNy4wNjI1IDkuMDc1MTYgMTcuMDYxNiA5LjE1MDkgMTcuMDU5NiA5LjIyNjA3QzE3LjA1MSA5LjUzNjYyIDE2Ljc5MiA5Ljc4MTUyIDE2LjQ4MTQgOS43NzI5NUMxNi4xNzExIDkuNzY0MTQgMTUuOTI3IDkuNTA1MjIgMTUuOTM1NSA5LjE5NDgyQzE1LjkzNzMgOS4xMzAwNiAxNS45Mzc1IDkuMDY0NzMgMTUuOTM3NSA4Ljk5OTUxQzE1LjkzNzMgNS4xNjgxOSAxMi44MzE0IDIuMDYyMDEgOSAyLjA2MjAxQzguOTM0NzUgMi4wNjIwMSA4Ljg2OTQ4IDIuMDYzMTUgOC44MDQ2OSAyLjA2NDk0QzguNDk0MjYgMi4wNzMzOCA4LjIzNjExIDEuODI4NTMgOC4yMjc1NCAxLjUxODA3QzguMjE5MDggMS4yMDc3NiA4LjQ2MzE4IDAuOTQ5NzMzIDguNzczNDQgMC45NDA5MThDOC44NDg1NyAwLjkzODg0MyA4LjkyNDQgMC45MzcwMTUgOSAwLjkzNzAxMlpNMS42Mzk2NSA1LjcwNTU3QzEuNzY2NzMgNS40MjIxNiAyLjA5OTM2IDUuMjk1MzQgMi4zODI4MSA1LjQyMjM2QzIuNjY2MjYgNS41NDk0IDIuNzkyOTcgNS44ODIwNiAyLjY2NjAyIDYuMTY1NTNDMi42MTMxIDYuMjgzNiAyLjU2Mjk5IDYuNDAzNDYgMi41MTY2IDYuNTI0OUMyLjQwNTc2IDYuODE1MDIgMi4wODExNiA2Ljk2MDggMS43OTEwMiA2Ljg1MDFDMS41MDA4MiA2LjczOTI1IDEuMzU0OTkgNi40MTM3NCAxLjQ2NTgyIDYuMTIzNTRDMS41MTk3OSA1Ljk4MjI0IDEuNTc4MSA1Ljg0MjkgMS42Mzk2NSA1LjcwNTU3Wk0zLjQ2MDk0IDMuMTQxMTFDMy42ODY2NSAyLjkyNzY1IDQuMDQzMzcgMi45Mzc4NyA0LjI1Njg0IDMuMTYzNTdDNC40NzAwMiAzLjM4OTI5IDQuNDU5OTYgMy43NDUxMiA0LjIzNDM4IDMuOTU4NUM0LjE0MDA2IDQuMDQ3NjkgNC4wNDgxOCA0LjEzOTU3IDMuOTU4OTggNC4yMzM4OUMzLjc0NTYgNC40NTk0NyAzLjM4OTc3IDQuNDY5NTQgMy4xNjQwNiA0LjI1NjM1QzIuOTM4MzUgNC4wNDI4OSAyLjkyODE0IDMuNjg2MTYgMy4xNDE2IDMuNDYwNDVDMy4yNDUwNiAzLjM1MTA3IDMuMzUxNTUgMy4yNDQ1NyAzLjQ2MDk0IDMuMTQxMTFaTTYuMTI0MDIgMS40NjUzM0M2LjQxNDIzIDEuMzU0NTEgNi43Mzk3NCAxLjUwMDMzIDYuODUwNTkgMS43OTA1M0M2Ljk2MTI5IDIuMDgwNjcgNi44MTU1MSAyLjQwNTI3IDYuNTI1MzkgMi41MTYxMUM2LjQwMzk1IDIuNTYyNSA2LjI4NDA5IDIuNjEyNjEgNi4xNjYwMiAyLjY2NTUzQzUuODgyNTUgMi43OTI0OCA1LjU0OTg4IDIuNjY1NzcgNS40MjI4NSAyLjM4MjMyQzUuMjk1ODMgMi4wOTg4NyA1LjQyMjY1IDEuNzY2MjUgNS43MDYwNSAxLjYzOTE2QzUuODQzMzkgMS41Nzc2MSA1Ljk4MjczIDEuNTE5MyA2LjEyNDAyIDEuNDY1MzNaIiBmaWxsPSIjRkU2NjAwIi8+Cjwvc3ZnPgo=" alt="" aria-hidden="true">
+            <span>Tempo: 3 min</span>
+          </span>
+          <span class="article-card__age">5-10 anni</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- Card abbonati -->
+    <article class="article-card article-card--sub">
+      <div class="article-card__img">
+        <img src="https://www.figma.com/api/mcp/asset/41a52835-9286-42a1-90b5-57cb82ebcda5" alt="Menarca">
+        <span class="article-card__tag-img">Bambino</span>
+      </div>
+      <div class="article-card__body">
+        <p class="article-card__rubrica">Crescita e sviluppo</p>
+        <h3 class="article-card__title">Menarca: guida completa alla prima mestruazione</h3>
+        <p class="article-card__excerpt">Conoscere il menarca aiuta le adolescenti a comprendere meglio i cambiamenti del proprio corpo.</p>
+        <div class="article-card__meta">
+          <span class="badge-sub">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            SOLO PER GLI ABBONATI
+          </span>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     GUIDE GRATUITE
+══════════════════════════════════════ -->
+<section class="guides">
+  <div class="guides__header">
+    <h2 class="guides__title">Le nostre guide gratuite</h2>
+    <div>
+      <p class="guides__sub">Le Guide Uppa sono fascicoli monografici tutte <strong>illustrate e scaricabili gratuitamente in formato PDF.</strong></p>
+    </div>
+    <div class="guides__bar"></div>
+  </div>
+
+  <div class="guides__row">
+    <div class="guide-card">
+      <div class="guide-card__img">
+        <img src="https://www.figma.com/api/mcp/asset/fe450a6e-13c5-4203-9ae3-f7ca25435d32" alt="La guida sui Capricci">
+        <span class="guide-card__badge">Guida Uppa</span>
+      </div>
+      <div class="guide-card__body">
+        <h3 class="guide-card__title">La guida sui Capricci</h3>
+        <p class="guide-card__excerpt">Tutto quello che c'è da sapere per capire e gestire in maniera educativa le reazioni "esplosive" dei bambini.</p>
+        <a href="#" class="guide-card__link">
+          Scarica la guida
+          <span class="guide-card__link-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </span>
+        </a>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card__img">
+        <img src="https://www.figma.com/api/mcp/asset/26aa322e-5735-4a17-81e1-cda09387088d" alt="Febbre e raffreddori">
+        <span class="guide-card__badge">Guida Uppa</span>
+      </div>
+      <div class="guide-card__body">
+        <h3 class="guide-card__title">Febbre e raffreddori</h3>
+        <p class="guide-card__excerpt">Tutto quello che c'è da sapere per capire e gestire la febbre nei bambini con serenità.</p>
+        <a href="#" class="guide-card__link">
+          Scarica la guida
+          <span class="guide-card__link-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </span>
+        </a>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card__img">
+        <img src="https://www.figma.com/api/mcp/asset/307bf755-41f5-43bd-b528-f8fc7a097544" alt="Autosvezzamento">
+        <span class="guide-card__badge">Guida Uppa</span>
+      </div>
+      <div class="guide-card__body">
+        <h3 class="guide-card__title">Auto­svezzamento</h3>
+        <p class="guide-card__excerpt">L'introduzione dei solidi in autonomia: tagli sicuri, allergie e segnali di prontezza.</p>
+        <a href="#" class="guide-card__link">
+          Scarica la guida
+          <span class="guide-card__link-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </span>
+        </a>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card__img">
+        <img src="https://www.figma.com/api/mcp/asset/fe450a6e-13c5-4203-9ae3-f7ca25435d32" alt="Sonno e cosleeping">
+        <span class="guide-card__badge">Guida Uppa</span>
+      </div>
+      <div class="guide-card__body">
+        <h3 class="guide-card__title">Sonno e cosleeping</h3>
+        <p class="guide-card__excerpt">I ritmi del sonno nei neonati e come gestire i risvegli notturni senza stress.</p>
+        <a href="#" class="guide-card__link">
+          Scarica la guida
+          <span class="guide-card__link-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </span>
+        </a>
+      </div>
+    </div>
+
+    <div class="guide-card">
+      <div class="guide-card__img">
+        <img src="https://www.figma.com/api/mcp/asset/fe450a6e-13c5-4203-9ae3-f7ca25435d32" alt="La guida sui Capricci">
+        <span class="guide-card__badge">Guida Uppa</span>
+      </div>
+      <div class="guide-card__body">
+        <h3 class="guide-card__title">La guida sui Capricci</h3>
+        <p class="guide-card__excerpt">Tutto quello che c'è da sapere per capire e gestire in maniera educativa le reazioni "esplosive" dei bambini.</p>
+        <a href="#" class="guide-card__link">
+          Scarica la guida
+          <span class="guide-card__link-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     FOOTER
+══════════════════════════════════════ -->
+<footer class="footer">
+  <div class="footer__top">
+    <div class="footer__logo">
+      <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTEwIiBoZWlnaHQ9IjQwIiB2aWV3Qm94PSIwIDAgMTEwIDQwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8ZyBjbGlwLXBhdGg9InVybCgjY2xpcDBfNDVfMzY4MCkiPgo8cGF0aCBkPSJNMjEuMTM1OCA4LjA1MjI1QzIwLjA4NzEgOC4wNTIyNSAxOS4xOTM0IDguNDI0NDMgMTguNDUxNyA5LjE3MTUxQzE3LjcxMDEgOS45MTg1OSAxNy4zMzc5IDEwLjc3NDMgMTcuMzM3OSAxMS43Mzg3QzE3LjMzNzkgMTIuNzYyOSAxNy43MTAxIDEzLjY1NjcgMTguNDUxNyAxNC40MTc0QzE5LjE5MzQgMTUuMTc4IDIwLjA4OTkgMTUuNTU4NCAyMS4xMzU4IDE1LjU1ODRDMjIuMTgxNyAxNS41NTg0IDIzLjAyNjYgMTUuMTc4IDIzLjc1NDYgMTQuNDE3NEMyNC40ODI3IDEzLjY1NjcgMjQuODQ2NyAxMi43NjI5IDI0Ljg0NjcgMTEuNzM4N0MyNC44NDY3IDEwLjc3NDMgMjQuNDgyNyA5LjkxNTg3IDIzLjc1NDYgOS4xNzE1MUMyMy4wMjY2IDguNDI0NDMgMjIuMTU0NSA4LjA1MjI1IDIxLjEzNTggOC4wNTIyNVY4LjA1MjI1WiIgZmlsbD0iI0ZFNjYwMCIvPgo8cGF0aCBkPSJNMTcuNDU0NSAxOS42Nzk1QzE3LjQ1NDUgMjEuNDUzNSAxNy4wMzA3IDIyLjg3OTcgMTYuMTg1OCAyMy45NjA5QzE1LjM0MDkgMjUuMDQyMSAxNC4wNTg3IDI1LjU4MjggMTIuMzQxOCAyNS41ODI4QzEwLjYyNDggMjUuNTgyOCA5LjM4MzMyIDI1LjA0MjEgOC41Mzg0NCAyMy45NjA5QzcuNjkzNTYgMjIuODc5NyA3LjI3MjQ4IDIxLjQ1MzUgNy4yNzI0OCAxOS42Nzk1VjEwLjA4MTVIMFYyMC4wOTUxQzAgMjIuNDc3NiAwLjQ5OTg2NCAyNC41ODMgMS40OTY4OCAyNi40MTEzQzIuNDkzODkgMjguMjM5NyAzLjkyMDEzIDI5LjY2ODYgNS43NzgzMiAzMC42OTI4QzcuNjMzNzkgMzEuNzE3IDkuODIzNDIgMzIuMjMwNCAxMi4zNDQ1IDMyLjIzMDRDMTQuODY1NSAzMi4yMzA0IDE3LjA2MDYgMzEuNzE3IDE4LjkzMjQgMzAuNjkyOEMyMC44MDE0IDI5LjY2ODYgMjIuMjM1OCAyOC4yMzk3IDIzLjIzMjggMjYuNDExM0MyNC4yMjk4IDI0LjU4MyAyNC43Mjk3IDIyLjQ3NzYgMjQuNzI5NyAyMC4wOTUxVjE4LjEzMUgxNy40NTcyVjE5LjY3OTVIMTcuNDU0NVoiIGZpbGw9IiNGRTY2MDAiLz4KPHBhdGggZD0iTTcuMzE1NDYgNy41MDg4M0M4LjMzNDIgNy41MDg4MyA5LjIwNjI1IDcuMTI4NSA5LjkzNDMxIDYuMzY3ODNDMTAuNjYyNCA1LjYwNzE3IDExLjAyNjQgNC43MTMzOSAxMS4wMjY0IDMuNjg5MjFDMTEuMDI2NCAyLjcyMjA5IDEwLjY2MjQgMS44NjYzNCA5LjkzNDMxIDEuMTE5MjZDOS4yMDYyNSAwLjM3MjE4MSA4LjMzNDIgMCA3LjMxNTQ2IDBDNi4yOTY3MSAwIDUuMzczMDUgMC4zNzIxODEgNC42MzE0MSAxLjExOTI2QzMuODg5NzYgMS44NjYzNCAzLjUxNzU4IDIuNzIyMDkgMy41MTc1OCAzLjY4OTIxQzMuNTE3NTggNC43MTMzOSAzLjg4OTc2IDUuNjA3MTcgNC42MzE0MSA2LjM2NzgzQzUuMzczMDUgNy4xMjg1IDYuMjY5NTUgNy41MDg4MyA3LjMxNTQ2IDcuNTA4ODNaIiBmaWxsPSIjRkU2NjAwIi8+CjxwYXRoIGQ9Ik0xMDcuNzAyIDI2LjA4MjhDMTA2Ljc0NiAyNi4wODI4IDEwNS44MzMgMjUuNTAxNCAxMDUuODMzIDI0LjA4ODhMMTA1LjgyOCAyMy40OTM4VjEwLjA3NjNIOTkuNDI3MlYxMi4xOTUyQzk3Ljc5MTggMTAuNDIxMyA5NS41MzQyIDkuNTM1NjQgOTIuNjUxOSA5LjUzNTY0QzkwLjg3NzkgOS41MzU2NCA4OS4xNzQ2IDEwLjAwMDIgODcuNTM5MSAxMC45MjkzQzg1LjkwMzcgMTEuODU4NCA4NC41NzUzIDEzLjE4NjggODMuNTQ4NCAxNC45MjAxQzgyLjUyNDIgMTYuNjUzMyA4Mi4wMTA3IDE4LjYzOTEgODIuMDEwNyAyMC44ODMxQzgyLjAxMDcgMjMuMTI3MSA4Mi41MjQyIDI1LjExNTcgODMuNTQ4NCAyNi44NDg5Qzg0LjU3MjUgMjguNTgyMSA4NS45MDM3IDI5LjkxMDUgODcuNTM5MSAzMC44Mzk2Qzg5LjE3NDYgMzEuNzY4NyA5MC44Nzc5IDMyLjIzMDYgOTIuNjUxOSAzMi4yMzA2Qzk1LjYzNzUgMzIuMjMwNiA5OC40NDM4IDMxLjE5ODIgMTAwLjQwNSAyOC45ODQyQzEwMS4zMTggMzEuMTMwMyAxMDMuNDU5IDMyLjIzNiAxMDUuNzkgMzIuMjM2QzEwNi44NjMgMzIuMjM2IDEwNy45NzEgMzEuOTk5NiAxMDkuMDE0IDMxLjUyN1YyNi4wODAxQzEwOS4wMTQgMjYuMDgwMSAxMDguMTU5IDI2LjA4NTUgMTA3LjY5OSAyNi4wODU1TDEwNy43MDIgMjYuMDgyOFpNOTcuNzgzNiAyNC42MDIyQzk2LjgwMDIgMjUuNTg1NiA5NS41NTg3IDI2LjA3NzMgOTQuMDY0NSAyNi4wNzczQzkyLjU3MDQgMjYuMDc3MyA5MS4zMjg5IDI1LjU4NTYgOTAuMzQ1NCAyNC42MDIyQzg5LjM2MiAyMy42MTg4IDg4Ljg3MDMgMjIuMzc3MyA4OC44NzAzIDIwLjg4MzFDODguODcwMyAxOS4zODg5IDg5LjM2MiAxOC4xNDc0IDkwLjM0NTQgMTcuMTY0QzkxLjMyODkgMTYuMTgwNiA5Mi41Njc3IDE1LjY4ODkgOTQuMDY0NSAxNS42ODg5Qzk1LjU2MTQgMTUuNjg4OSA5Ni44MDAyIDE2LjE4MDYgOTcuNzgzNiAxNy4xNjRDOTguNzY3MSAxOC4xNDc0IDk5LjI1ODggMTkuMzg2MiA5OS4yNTg4IDIwLjg4MzFDOTkuMjU4OCAyMi4zOCA5OC43NjcxIDIzLjYxODggOTcuNzgzNiAyNC42MDIyWiIgZmlsbD0iI0ZFNjYwMCIvPgo8cGF0aCBkPSJNNzQuMTIxMiAxMC45NTM3QzcyLjQ4NTggMTAuMDExIDcwLjc4MjUgOS41NDEwMiA2OS4wMDg1IDkuNTQxMDJDNjYuMTI2MSA5LjU0MTAyIDYzLjg2ODYgMTAuNDI5NCA2Mi4yMzMyIDEyLjIwMDZWMTAuMDgxNkg1NS43OTJWNDAuMDAyOEg2Mi43MzNWMzAuMDNDNjQuMjg0MiAzMS40OTk3IDY2LjM3NjEgMzIuMjMzMiA2OS4wMDg1IDMyLjIzMzJDNzAuNzc5OCAzMi4yMzMyIDcyLjQ4NTggMzEuNzY4NyA3NC4xMjEyIDMwLjg0MjNDNzUuNzU2NyAyOS45MTMyIDc3LjA4NTEgMjguNTg0OCA3OC4xMTIgMjYuODUxNUM3OS4xMzYyIDI1LjEyMSA3OS42NDk2IDIzLjEzMjQgNzkuNjQ5NiAyMC44ODg1Qzc5LjY0OTYgMTguNjQ0NSA3OS4xMzYyIDE2LjY2NDEgNzguMTEyIDE0Ljk0NDRDNzcuMDg3OCAxMy4yMjc1IDc1Ljc1NjcgMTEuODk2NCA3NC4xMjEyIDEwLjk1MzdWMTAuOTUzN1pNNzEuMzE0OSAyNC42MDQ5QzcwLjMzMTUgMjUuNTg4MyA2OS4wOTI3IDI2LjA4IDY3LjU5NTkgMjYuMDhDNjYuMDk5IDI2LjA4IDY0Ljg2MDIgMjUuNTg4MyA2My44NzY4IDI0LjYwNDlDNjIuODkzMyAyMy42MjE0IDYyLjQwMTYgMjIuMzgyNiA2Mi40MDE2IDIwLjg4NThDNjIuNDAxNiAxOS4zODg5IDYyLjg5MzMgMTguMTUwMSA2My44NzY4IDE3LjE2NjdDNjQuODYwMiAxNi4xODMyIDY2LjA5OSAxNS42OTE1IDY3LjU5NTkgMTUuNjkxNUM2OS4wOTI3IDE1LjY5MTUgNzAuMzMxNSAxNi4xODMyIDcxLjMxNDkgMTcuMTY2N0M3Mi4yOTg0IDE4LjE1MDEgNzIuNzkwMSAxOS4zODg5IDcyLjc5MDEgMjAuODg1OEM3Mi43OTAxIDIyLjM4MjYgNzIuMjk4NCAyMy42MjE0IDcxLjMxNDkgMjQuNjA0OVoiIGZpbGw9IiNGRTY2MDAiLz4KPHBhdGggZD0iTTQ3LjAwOTIgMTAuOTUzN0M0NS4zNzM3IDEwLjAxMSA0My42NzA0IDkuNTQxMDIgNDEuODk2NCA5LjU0MTAyQzM5LjAxNCA5LjU0MTAyIDM2Ljc1NjUgMTAuNDI5NCAzNS4xMjM4IDEyLjIwMDZWMTAuMDgxNkgyOC42ODI2VjQwLjAwMjhIMzUuNjIzN1YzMC4wM0MzNy4xNzQ5IDMxLjQ5OTcgMzkuMjY2NyAzMi4yMzMyIDQxLjg5OTEgMzIuMjMzMkM0My42NzMxIDMyLjIzMzIgNDUuMzc2NCAzMS43Njg3IDQ3LjAxMTkgMzAuODQyM0M0OC42NDczIDI5LjkxMzIgNDkuOTc1NyAyOC41ODQ4IDUxLjAwMjYgMjYuODUxNUM1Mi4wMjY4IDI1LjEyMSA1Mi41NDAzIDIzLjEzMjQgNTIuNTQwMyAyMC44ODg1QzUyLjU0MDMgMTguNjQ0NSA1Mi4wMjY4IDE2LjY2NDEgNTEuMDAyNiAxNC45NDQ0QzQ5Ljk3ODUgMTMuMjI3NSA0OC42NDczIDExLjg5NjQgNDcuMDExOSAxMC45NTM3SDQ3LjAwOTJaTTQ0LjIwMjkgMjQuNjA0OUM0My4yMTk0IDI1LjU4ODMgNDEuOTgwNiAyNi4wOCA0MC40ODM4IDI2LjA4QzM4Ljk4NjkgMjYuMDggMzcuNzQ4MSAyNS41ODgzIDM2Ljc2NDcgMjQuNjA0OUMzNS43ODEyIDIzLjYyMTQgMzUuMjg5NSAyMi4zODI2IDM1LjI4OTUgMjAuODg1OEMzNS4yODk1IDE5LjM4ODkgMzUuNzgxMiAxOC4xNTAxIDM2Ljc2NDcgMTcuMTY2N0MzNy43NDgxIDE2LjE4MzIgMzguOTg2OSAxNS42OTE1IDQwLjQ4MzggMTUuNjkxNUM0MS45ODA2IDE1LjY5MTUgNDMuMjE5NCAxNi4xODMyIDQ0LjIwMjkgMTcuMTY2N0M0NS4xODYzIDE4LjE1MDEgNDUuNjc4IDE5LjM4ODkgNDUuNjc4IDIwLjg4NThDNDUuNjc4IDIyLjM4MjYgNDUuMTg2MyAyMy42MjE0IDQ0LjIwMjkgMjQuNjA0OVoiIGZpbGw9IiNGRTY2MDAiLz4KPC9nPgo8ZGVmcz4KPGNsaXBQYXRoIGlkPSJjbGlwMF80NV8zNjgwIj4KPHJlY3Qgd2lkdGg9IjEwOS4wMTciIGhlaWdodD0iNDAiIGZpbGw9IndoaXRlIi8+CjwvY2xpcFBhdGg+CjwvZGVmcz4KPC9zdmc+Cg==" alt="Uppa">
+      <div class="footer__logo-text">
+        <p class="footer__claim">Il primo magazine indipendente per genitori, senza pubblicità dal 2001.</p>
+        <p class="footer__stat"><span>29.000 famiglie</span> si fidano di noi.</p>
+      </div>
+    </div>
+    <div>
+      <p class="footer__nav-title">Info</p>
+      <ul class="footer__nav-list">
+        <li><a href="#">Newsletter</a></li>
+        <li><a href="#">Servizio clienti</a></li>
+        <li><a href="#">Privacy</a></li>
+        <li><a href="#">Cookie</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="footer__nav-title">Uppa</p>
+      <ul class="footer__nav-list">
+        <li><a href="#">Chi siamo</a></li>
+        <li><a href="#">Abbonati</a></li>
+        <li><a href="#">I nostri libri</a></li>
+        <li><a href="#">L'app Uppa</a></li>
+        <li><a href="#">Gift card</a></li>
+        <li><a href="#">Corso preparto</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="footer__nav-title">Rubriche</p>
+      <ul class="footer__nav-list">
+        <li><a href="#">Gravidanza</a></li>
+        <li><a href="#">Nascita</a></li>
+        <li><a href="#">Bambino</a></li>
+        <li><a href="#">Educazione</a></li>
+        <li><a href="#">Medicina</a></li>
+        <li><a href="#">Psicologia</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer__bottom">
+    <span>© 2026 Uppa srl · Via E. Q. Visconti 8, 00193 Roma · P.IVA 06548181004</span>
+    <span>Le informazioni pubblicate hanno scopo esclusivamente informativo e non sostituiscono il parere del medico.</span>
+  </div>
+</footer>
+
+
+<!-- ══════════════════════════════════════
+     JS — scroll behavior
+══════════════════════════════════════ -->
+<script>
+(function () {
+  var header  = document.getElementById('js-header');
+  var navMain = header.querySelector('.nav-main');
+  var navRub  = header.querySelector('.nav-rubriche');
+  var THRESH  = 40;
+
+  var ticking  = false;
+  var scrolled = false;
+  var fullPadding = 0; /* altezza totale header default, misurata al mount */
+
+  /* Misura altezze reali dal DOM */
+  function getHeights() {
+    return {
+      main: navMain.offsetHeight,
+      rub:  navRub.offsetHeight
+    };
+  }
+
+  /* Imposta padding-top iniziale e ne fa il cache */
+  function initPadding() {
+    var h = getHeights();
+    fullPadding = h.main + h.rub;
+    /* Aggiorna la CSS var così nav-rubriche usa l'altezza reale */
+    document.documentElement.style.setProperty('--nav-main-h', h.main + 'px');
+    document.body.style.paddingTop = fullPadding + 'px';
+  }
+  initPadding();
+  window.addEventListener('resize', initPadding);
+
+  function update() {
+    var y = window.scrollY;
+    var should = y > THRESH;
+
+    if (should !== scrolled) {
+      scrolled = should;
+      header.classList.toggle('is-scrolled', scrolled);
+
+      if (scrolled) {
+        /* In scrolled: solo la barra arancione */
+        document.body.style.paddingTop = '60px';
+      } else {
+        /* Torna subito al valore pieno — la CSS transition su body lo anima smooth */
+        document.body.style.paddingTop = fullPadding + 'px';
+      }
+    }
+
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', function () {
+    if (!ticking) { requestAnimationFrame(update); ticking = true; }
+  }, { passive: true });
+
+  /* Pills: click → active */
+  document.querySelectorAll('.rub-pill').forEach(function (p) {
+    p.addEventListener('click', function (e) {
+      e.preventDefault();
+      document.querySelectorAll('.rub-pill').forEach(function (x) {
+        x.classList.remove('is-active');
+        x.removeAttribute('aria-current');
+      });
+      this.classList.add('is-active');
+      this.setAttribute('aria-current', 'true');
+    });
+  });
+}());
+</script>
+
+<!-- ══════════════════════════════════════
+     MOBILE BOTTOM TAB BAR
+══════════════════════════════════════ -->
+<nav class="mobile-tabbar" aria-label="Navigazione mobile">
+
+  <a href="#" class="tab-item tab-item--active" aria-current="page">
+    <div class="tab-item__bar"></div>
+    <!-- Home icon (filled) -->
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M9.5 21V13.5H14.5V21M3 9.5L12 3L21 9.5V20C21 20.5523 20.5523 21 20 21H15V15H9V21H4C3.44772 21 3 20.5523 3 20V9.5Z" fill="#FE6600" stroke="#FE6600" stroke-width="1.5" stroke-linejoin="round"/>
+    </svg>
+    <span>Home</span>
+  </a>
+
+  <a href="#" class="tab-item">
+    <!-- Rubriche: book -->
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+    </svg>
+    <span>Rubriche</span>
+  </a>
+
+  <!-- FAB Cerca -->
+  <div class="tab-fab-wrap">
+    <button class="tab-fab" type="button" aria-label="Cerca su Uppa">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    </button>
+    <span class="tab-fab-label">Cerca</span>
+  </div>
+
+  <a href="#" class="tab-item">
+    <!-- Guide: document lines -->
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="9" y1="13" x2="15" y2="13"/>
+      <line x1="9" y1="17" x2="12" y2="17"/>
+    </svg>
+    <span>Guide</span>
+  </a>
+
+  <a href="#" class="tab-item">
+    <!-- Menu: grid 2x2 -->
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+      <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+      <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+      <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+    </svg>
+    <span>Menu</span>
+  </a>
+
+</nav>
+
+<!-- ══════════════════════════════════════
+     JS — Hero carousel
+══════════════════════════════════════ -->
+<script>
+(function () {
+  var slides    = document.querySelectorAll('.hero__slide');
+  var contents  = document.querySelectorAll('.hero__content');
+  var dots      = document.querySelectorAll('.hero__dots-bottom .hero__dot');
+  var current   = 0;
+  var total     = slides.length;
+  var timer;
+
+  function goTo(idx) {
+    slides[current].classList.remove('is-active');
+    contents[current].classList.remove('is-active');
+    dots[current].classList.remove('is-active');
+    dots[current].setAttribute('aria-selected', 'false');
+
+    current = (idx + total) % total;
+
+    slides[current].classList.add('is-active');
+    contents[current].classList.add('is-active');
+    dots[current].classList.add('is-active');
+    dots[current].setAttribute('aria-selected', 'true');
+  }
+
+  function startAuto() {
+    clearInterval(timer);
+    timer = setInterval(function () { goTo(current + 1); }, 5000);
+  }
+
+  dots.forEach(function (dot) {
+    dot.addEventListener('click', function () {
+      goTo(parseInt(this.getAttribute('data-slide'), 10));
+      startAuto(); /* resetta il timer al click */
+    });
+  });
+
+  startAuto();
+}());
+</script>
+
+<!-- ══════════════════════════════════════
+     JS — Dropdown nav
+══════════════════════════════════════ -->
+<script>
+(function () {
+  var dropdowns = document.querySelectorAll('.nav-dropdown');
+
+  function closeAll() {
+    dropdowns.forEach(function (d) {
+      d.classList.remove('is-open');
+      d.querySelector('.nav-dropdown__trigger').setAttribute('aria-expanded', 'false');
+    });
+  }
+
+  dropdowns.forEach(function (dropdown) {
+    var trigger = dropdown.querySelector('.nav-dropdown__trigger');
+
+    trigger.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var isOpen = dropdown.classList.contains('is-open');
+      closeAll();
+      if (!isOpen) {
+        dropdown.classList.add('is-open');
+        trigger.setAttribute('aria-expanded', 'true');
+      }
+    });
+
+    dropdown.addEventListener('click', function (e) { e.stopPropagation(); });
+  });
+
+  document.addEventListener('click', closeAll);
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeAll();
+  });
+}());
+</script>
+
+</body>
+</html>
